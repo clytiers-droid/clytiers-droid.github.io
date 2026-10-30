@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clytiers | Official Tier List & Community</title>
+  <!-- サイトのアイコン -->
+  <link rel="icon" href="./IMG_5686.png" type="image/png">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#07030d',
+              card: '#120924',
+              border: '#2a164f',
+              purple: '#8b5cf6',
+              lightPurple: '#a855f7',
+              accent: '#d946ef',
+              gold: '#f59e0b',
+              silver: '#9ca3af',
+              bronze: '#d97706',
+              blue: '#3b82f6'
+            }
+          },
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Noto Sans JP', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #07030d;
+      color: #e2e8f0;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.18) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    .clytiers-gradient-logo {
+      background: linear-gradient(135deg, #a855f7 0%, #d946ef 50%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.6));
+    }
+
+    .glow-box {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .glass-nav {
+      background: rgba(18, 9, 36, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+    }
+
+    .tier-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .tier-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+    .tier-silver { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; box-shadow: 0 0 8px rgba(156, 163, 175, 0.4); }
+    .tier-bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; box-shadow: 0 0 8px rgba(217, 119, 6, 0.4); }
+    .tier-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+
+    .skin-showcase-bg {
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(7, 3, 13, 0.9) 80%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #07030d; }
+    ::-webkit-scrollbar-thumb { background: #2a164f; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 glass-nav">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 h-16 flex items-center justify-between">
+      <nav class="flex items-center justify-between w-full font-orbitron font-bold text-xs sm:text-sm">
+        <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
+          <i class="fa-solid fa-house text-xs"></i><span>Home</span>
+        </button>
+
+        <button onclick="switchTab('tiers')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tiers">
+          <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
+        </button>
+
+        <a href="#" onclick="switchTab('home')" class="font-black text-lg sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-4">
+          CLYTIERS
+        </a>
+
+        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300">
+          <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
+        </a>
+
+        <!-- Language Dropdown -->
+        <div class="relative inline-block text-left">
+          <button onclick="toggleLangDropdown(event)" class="bg-brand-card border border-brand-border px-2 py-1 rounded text-xs flex items-center gap-1 hover:border-brand-purple">
+            <i class="fa-solid fa-globe text-brand-purple"></i>
+            <span id="current-lang-text">JA</span>
+            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+          </button>
+          
+          <div id="lang-dropdown" class="hidden absolute right-0 mt-2 w-24 rounded-md shadow-lg bg-brand-card border border-brand-border ring-1 ring-black ring-opacity-5 z-50">
+            <div class="py-1">
+              <button onclick="changeLanguage('ja')" class="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-brand-purple/20 flex items-center justify-between">
+                日本語 <span class="text-[10px] text-brand-purple font-bold">JA</span>
+              </button>
+              <button onclick="changeLanguage('en')" class="w-full text-left px-3 py-1.5 text-xs text-gray-200 hover:bg-brand-purple/20 flex items-center justify-between">
+                English <span class="text-[10px] text-brand-purple font-bold">EN</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-6 flex-grow w-full">
+
+    <!-- HOME TAB -->
+    <section id="tab-home" class="space-y-8">
+      <div class="glow-box bg-brand-card rounded-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
+          OFFICIAL COMMUNITY & TIER LIST
+        </div>
+        <h1 class="text-2xl sm:text-5xl font-black font-orbitron text-white tracking-wide mb-4">
+          COMPETITIVE MINECRAFT PVP TIERS
+        </h1>
+        <p class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed" data-i18n="hero_desc">
+          clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。
+        </p>
+        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:scale-105">
+          <i class="fa-brands fa-discord text-xl"></i>
+          <span data-i18n="join_server">DISCORD サーバーに参加</span>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glow-box bg-brand-card rounded-xl p-6 relative">
+          <div class="flex items-center gap-3 border-b border-brand-border pb-4 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400">
+              <i class="fa-solid fa-shield-halved text-xl"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold font-orbitron text-white" data-i18n="title_server_rules">SERVER RULES</h2>
+              <p class="text-xs text-gray-400" data-i18n="sub_server_rules">サーバー利用規約</p>
+            </div>
+          </div>
+          <ul class="space-y-3 text-sm text-gray-300">
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">1.</span><span data-i18n="rule_1">他人への侮辱や不快な言動は禁止。相手をリスペクトしましょう。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">2.</span><span data-i18n="rule_2">荒らし行為は理由を問わず即Ban対象となります。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">3.</span><span data-i18n="rule_3">Tierテスト中のりキットの使用禁止。マクロやチートも完全禁止です。Testerと受検者はお互いを尊重してください。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">4.</span><span data-i18n="rule_4">その他、管理者が不適切と判断する行為は禁止。常識を守ってプレイしてください。</span></li>
+          </ul>
+        </div>
+
+        <div class="glow-box bg-brand-card rounded-xl p-6 relative">
+          <div class="flex items-center gap-3 border-b border-brand-border pb-4 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-brand-purple/20 border border-brand-purple/40 flex items-center justify-center text-brand-lightPurple">
+              <i class="fa-solid fa-swords text-xl"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold font-orbitron text-white" data-i18n="title_test_rules">TIER TEST RULES</h2>
+              <p class="text-xs text-gray-400" data-i18n="sub_test_rules">テスト規定</p>
+            </div>
+          </div>
+          <ul class="space-y-3 text-sm text-gray-300">
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">1.</span><span data-i18n="test_rule_1">TestはFirst to 4 (FT4)で行います。使用サーバーはDiscord内の test-server チャンネルをご確認ください。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">2.</span><span data-i18n="test_rule_2">クールダウンはありませんが、1日に受けられるTestは最大2回までです。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">3.</span><span data-i18n="test_rule_3">使用KitはLT3まではVanilla Kitであれば自由です。HT3からはDrain Kitを使用します。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">4.</span><span data-i18n="test_rule_4">チート・マクロの使用禁止。キーボード2個使いも禁止です。</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIERS TAB -->
+    <section id="tab-tiers" class="hidden space-y-6">
+      <!-- Kit Tabs & Load Button Container -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Kit Tabs -->
+        <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none flex-1" id="kit-tabs-container">
+          <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
+            <i class="fa-solid fa-trophy"></i> OVERALL
+          </button>
+          <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
+            <img src="./IMG_8234.png" alt="Sword" class="w-4 h-4 object-contain"> SWORD
+          </button>
+          <button onclick="filterKit('AXE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="AXE">
+            <img src="./IMG_8246.png" alt="Axe" class="w-4 h-4 object-contain"> AXE
+          </button>
+          <button onclick="filterKit('MACE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="MACE">
+            <img src="./IMG_8236.png" alt="Mace" class="w-4 h-4 object-contain"> MACE
+          </button>
+          <button onclick="filterKit('SPEAR')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SPEAR">
+            <img src="./IMG_8233.png" alt="Spear" class="w-4 h-4 object-contain"> SPEAR
+          </button>
+          <button onclick="filterKit('CRYSTAL')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CRYSTAL">
+            <img src="./IMG_8232.png" alt="Crystal" class="w-4 h-4 object-contain"> CRYSTAL
+          </button>
+          <button onclick="filterKit('SHIELD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SHIELD">
+            <img src="./IMG_8237.png" alt="Shield" class="w-4 h-4 object-contain"> SHIELD
+          </button>
+          <button onclick="filterKit('POT')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="POT">
+            <img src="./IMG_8239.png" alt="Pot" class="w-4 h-4 object-contain"> POT
+          </button>
+          <button onclick="filterKit('CART')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CART">
+            <img src="./IMG_8244.png" alt="Cart" class="w-4 h-4 object-contain"> CART
+          </button>
+          <button onclick="filterKit('UHC')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="UHC">
+            <img src="./IMG_8238.png" alt="UHC" class="w-4 h-4 object-contain"> UHC
+          </button>
+        </div>
+
+        <!-- Load Button & CoolDown Display -->
+        <div class="flex flex-col items-end shrink-0 mb-2">
+          <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4 mb-0.5"></span>
+          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg transition-all hover:scale-105">
+            <i class="fa-solid fa-rotate" id="load-icon"></i> <span data-i18n="btn_load">LOAD</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-brand-card p-4 rounded-xl border border-brand-border">
+        <div class="relative flex-1 min-w-[200px]">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+          <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Search MCID..." class="w-full bg-brand-dark border border-brand-border rounded-lg pl-9 pr-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
+        </div>
+        <div class="text-xs text-gray-400 font-mono">
+          <span data-i18n="click_player_hint">※ プレイヤー行をクリックで詳細プロフィールを表示</span>
+        </div>
+      </div>
+
+      <!-- Tiers Table -->
+      <div class="overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
+        <table class="w-full text-left border-collapse min-w-[650px]">
+          <thead>
+            <tr class="border-b border-brand-border bg-brand-dark/50 text-[11px] font-orbitron text-gray-400 uppercase">
+              <th class="p-3 text-center w-12">#</th>
+              <th class="p-3" data-i18n="th_player">PLAYER</th>
+              <th class="p-3 text-center" data-i18n="th_country">COUNTRY</th>
+              <th class="p-3 text-right" data-i18n="th_kits">CONTRIBUTING KITS</th>
+            </tr>
+          </thead>
+          <tbody id="tier-tbody" class="divide-y divide-brand-border/40 text-xs font-mono">
+            <!-- Dynamic JS Output -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Player Detail Modal -->
+  <div id="player-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-md w-full p-5 sm:p-6 relative glow-box overflow-hidden shadow-2xl">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Profile Header -->
+      <div class="skin-showcase-bg rounded-xl p-4 sm:p-5 mb-4 border border-brand-border flex items-center gap-4 sm:gap-6 relative">
+        <div class="absolute top-2 left-3 text-[9px] font-orbitron text-brand-lightPurple tracking-widest uppercase opacity-70">
+          // PLAYER PROFILE
+        </div>
+        <div class="relative group mt-2 shrink-0">
+          <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-300"></div>
+          <div class="relative w-24 h-36 sm:w-28 sm:h-40 bg-brand-dark/90 rounded-xl border border-brand-purple/50 flex items-center justify-center p-2 overflow-hidden">
+            <img id="modal-fullbody" src="" alt="Skin" onerror="this.onerror=null; this.src='https://mc-heads.net/body/MHF_Steve/150';" class="h-full object-contain filter drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
+          </div>
+        </div>
+        <div class="text-left z-10 overflow-hidden mt-2">
+          <h3 id="modal-name" class="text-xl sm:text-2xl font-black font-orbitron text-white tracking-wide mb-2 truncate glow-text"></h3>
+          <div class="inline-flex items-center gap-2 bg-brand-dark/80 px-2.5 py-1 rounded-lg border border-brand-border">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[10px] sm:text-[11px] font-mono text-gray-300" id="modal-edition-badge">Verified Player</span>
+          </div>
+        </div>
+      </div>
+
+      <h4 class="text-xs font-bold font-orbitron text-gray-300 mb-2 uppercase flex items-center gap-2 mt-2">
+        <i class="fa-solid fa-layer-group text-brand-purple"></i> <span data-i18n="modal_kit_breakdown">Kit Tier Breakdown</span>
+      </h4>
+      <div id="modal-kits" class="grid grid-cols-2 gap-2 text-xs max-h-44 overflow-y-auto pr-1">
+        <!-- Dynamic -->
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-brand-border/40 bg-brand-dark py-4 text-center text-xs text-gray-500 font-mono">
+    &copy; 2026 clytiers. All rights reserved. Not affiliated with Mojang AB.
+  </footer>
+
+  <script>
+    const i18nData = {
+      ja: {
+        hero_desc: "clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。",
+        join_server: "DISCORD サーバーに参加",
+        title_server_rules: "SERVER RULES",
+        sub_server_rules: "サーバー利用規約",
+        rule_1: "他人への侮辱や不快な言動は禁止。相手をリスペクトしましょう。",
+        rule_2: "荒らし行為は理由を問わず即Ban対象となります。",
+        rule_3: "Tierテスト中のりキットの使用禁止。マクロやチートも完全禁止です。Testerと受検者はお互いを尊重してください。",
+        rule_4: "その他、管理者が不適切と判断する行為は禁止。常識を守ってプレイしてください。",
+        title_test_rules: "TIER TEST RULES",
+        sub_test_rules: "テスト規定",
+        test_rule_1: "TestはFirst to 4 (FT4)で行います。使用サーバーはDiscord内の test-server チャンネルをご確認ください。",
+        test_rule_2: "クールダウンはありませんが、1日に受けられるTestは最大2回までです。",
+        test_rule_3: "使用KitはLT3まではVanilla Kitであれば自由です。HT3からはDrain Kitを使用します。",
+        test_rule_4: "チート・マクロの使用禁止。キーボード2個使いも禁止です。",
+        btn_load: "LOAD",
+        click_player_hint: "※ プレイヤー行をクリックで詳細プロフィールを表示",
+        th_player: "PLAYER",
+        th_country: "国",
+        th_kits: "獲得KIT TIER",
+        modal_kit_breakdown: "Kit別詳細 Tier"
+      },
+      en: {
+        hero_desc: "Welcome to clytiers! Take tier tests in our official Discord server and climb the leaderboard.",
+        join_server: "JOIN DISCORD SERVER",
+        title_server_rules: "SERVER RULES",
+        sub_server_rules: "Community Guidelines",
+        rule_1: "No insulting or disrespecting others. Treat everyone with respect.",
+        rule_2: "Griefing/Trolling will result in an immediate Ban without exception.",
+        rule_3: "Liquid usage during Tier tests is strictly prohibited. No macros or cheats. Testers and candidates must respect each other.",
+        rule_4: "Any actions deemed inappropriate by admins are forbidden. Follow common sense.",
+        title_test_rules: "TIER TEST RULES",
+        sub_test_rules: "Testing Protocol",
+        test_rule_1: "Tests are played in First to 4 (FT4) format. Check the #test-server channel in Discord for server details.",
+        test_rule_2: "No cooldowns, but you can take a maximum of 2 tests per day.",
+        test_rule_3: "Kits up to LT3 are free for Vanilla Kits. HT3 and above require Drain Kit.",
+        test_rule_4: "No cheats or macros! Dual keyboard usage is strictly forbidden.",
+        btn_load: "LOAD",
+        click_player_hint: "* Click on any player row to view detailed profile",
+        th_player: "PLAYER",
+        th_country: "COUNTRY",
+        th_kits: "CONTRIBUTING KITS",
+        modal_kit_breakdown: "Kit Tier Breakdown"
+      }
+    };
+
+    let currentLang = 'ja';
+    let activeKitFilter = 'OVERALL';
+    let playersData = [];
+    let cooldownTimer = null;
+
+    const DEFAULT_STEVE_HEAD = "https://mc-heads.net/avatar/MHF_Steve/32";
+    const DEFAULT_STEVE_BODY = "https://mc-heads.net/body/MHF_Steve/150";
+
+    function isBedrockPlayer(name) {
+      return name && name.includes('.');
+    }
+
+    function getSkinAvatarUrl(name, size = 64) {
+      if (isBedrockPlayer(name)) {
+        return `https://mc-heads.net/avatar/MHF_Steve/${size}`;
+      }
+      return `https://mc-heads.net/avatar/${name}/${size}`;
+    }
+
+    function getSkinFullBodyUrl(name) {
+      if (isBedrockPlayer(name)) {
+        return DEFAULT_STEVE_BODY;
+      }
+      return `https://mc-heads.net/body/${name}/150`;
+    }
+
+    function formatCountry(countryStr) {
+      if (!countryStr) return '';
+      const clean = countryStr.trim().toLowerCase();
+      const map = {
+        'japan': '🇯🇵', 'jp': '🇯🇵', '日本': '🇯🇵',
+        'america': '🇺🇸', 'usa': '🇺🇸', 'us': '🇺🇸',
+        'denmark': '🇩🇰', 'dk': '🇩🇰',
+        'germany': '🇩🇪', 'de': '🇩🇪',
+        'canada': '🇨🇦', 'ca': '🇨🇦',
+        'uk': '🇬🇧', 'united kingdom': '🇬🇧', 'england': '🇬🇧',
+        'korea': '🇰🇷', 'kr': '🇰🇷',
+        'china': '🇨🇳', 'cn': '🇨🇳',
+        'france': '🇫🇷', 'fr': '🇫🇷'
+      };
+      return map[clean] || countryStr;
+    }
+
+    function formatTierFullTitle(tierStr) {
+      if (!tierStr) return '';
+      const clean = tierStr.toUpperCase().trim();
+      const match = clean.match(/([HLM]T)(\d+)/);
+      if (match) {
+        const type = match[1];
+        const num = match[2];
+        let typeName = 'Tier';
+        if (type === 'HT') typeName = 'High Tier';
+        else if (type === 'MT') typeName = 'Mid Tier';
+        else if (type === 'LT') typeName = 'Low Tier';
+        return `${typeName} ${num}`;
+      }
+      return tierStr;
+    }
+
+    function getTierScoreValue(tierStr) {
+      if (!tierStr) return 0;
+      const clean = tierStr.toUpperCase().trim();
+      const match = clean.match(/([HLM]T)(\d+)/);
+      if (match) {
+        const type = match[1];
+        const num = parseInt(match[2]);
+        let baseScore = (7 - num) * 30;
+        if (type === 'HT') baseScore += 3;
+        else if (type === 'MT') baseScore += 2;
+        else if (type === 'LT') baseScore += 1;
+        return baseScore;
+      }
+      return 1;
+    }
+
+    function calculatePlayerOverallScore(player) {
+      let total = 0;
+      for (const tier of Object.values(player.kits)) {
+        total += getTierScoreValue(tier);
+      }
+      return total;
+    }
+
+    function getKitImageTag(kitName) {
+      const map = {
+        CRYSTAL: 'IMG_8232.png',
+        SPEAR: 'IMG_8233.png',
+        SWORD: 'IMG_8234.png',
+        MACE: 'IMG_8236.png',
+        SHIELD: 'IMG_8237.png',
+        UHC: 'IMG_8238.png',
+        POT: 'IMG_8239.png',
+        CART: 'IMG_8244.png',
+        AXE: 'IMG_8246.png'
+      };
+      if (map[kitName]) {
+        return `<img src="./${map[kitName]}" alt="${kitName}" class="w-4 h-4 object-contain inline-block">`;
+      }
+      return '';
+    }
+
+    function getTierColorClass(tierStr) {
+      if (!tierStr) return 'tier-blue';
+      const upper = tierStr.toUpperCase();
+      if (upper.includes('1')) return 'tier-gold';
+      if (upper.includes('2')) return 'tier-silver';
+      if (upper.includes('3')) return 'tier-bronze';
+      return 'tier-blue';
+    }
+
+    function toggleLangDropdown(e) {
+      e.stopPropagation();
+      document.getElementById('lang-dropdown').classList.add('hidden');
+    }
+
+    document.addEventListener('click', () => {
+      document.getElementById('lang-dropdown').classList.add('hidden');
+    });
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('current-lang-text').innerText = lang.toUpperCase();
+      
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18nData[lang][key]) {
+          el.innerText = i18nData[lang][key];
+        }
+      });
+      document.getElementById('lang-dropdown').classList.add('hidden');
+    }
+
+    function switchTab(tabName) {
+      document.getElementById('tab-home').classList.add('hidden');
+      document.getElementById('tab-tiers').classList.add('hidden');
+      
+      document.getElementById('nav-home').classList.replace('text-brand-lightPurple', 'text-gray-300');
+      document.getElementById('nav-tiers').classList.replace('text-brand-lightPurple', 'text-gray-300');
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      document.getElementById(`nav-${tabName}`).classList.replace('text-gray-300', 'text-brand-lightPurple');
+
+      if (tabName === 'tiers') {
+        fetchSpreadsheetData();
+      }
+    }
+
+    function filterKit(kit) {
+      activeKitFilter = kit;
+      
+      document.querySelectorAll('.kit-tab').forEach(btn => {
+        if (btn.getAttribute('data-kit') === kit) {
+          btn.className = "kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
+        } else {
+          btn.className = "kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border";
+        }
+      });
+
+      renderTable();
+    }
+
+    async function fetchSpreadsheetData() {
+      const tbody = document.getElementById('tier-tbody');
+      const loadIcon = document.getElementById('load-icon');
+      if (loadIcon) loadIcon.classList.add('fa-spin');
+
+      tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
+
+      try {
+        const part1 = "https://script.google.com/macros/s/";
+        const part2 = "AKfycbxCBMdqmqAEorlZFCbzcf4HtvqlxnRphEgQ_8C4BWGaNmovZ1PXRNGhykN9mH6F2_sX2w";
+        const part3 = "/exec";
+        const webAppUrl = part1 + part2 + part3 + "?t=" + new Date().getTime();
+        
+        const response = await fetch(webAppUrl);
+        const rawData = await response.json();
+
+        playersData = rawData.map(p => {
+          let normalizedKits = {};
+          if (p.kits) {
+            for (let [k, v] of Object.entries(p.kits)) {
+              normalizedKits[k.toUpperCase()] = v ? v.toString().trim().toUpperCase() : '';
+            }
+          }
+          return {
+            ...p,
+            country: formatCountry(p.country),
+            kits: normalizedKits
+          };
+        });
+
+        renderTable();
+      } catch (error) {
+        console.error("Failed to load spreadsheet data:", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-red-400">データの取得に失敗しました。</td></tr>`;
+      } finally {
+        if (loadIcon) loadIcon.classList.remove('fa-spin');
+      }
+    }
+
+    // 1分間（60秒）のクールダウン付きLOADボタン制御
+    function handleLoadData() {
+      const loadBtn = document.getElementById('load-btn');
+      const cooldownText = document.getElementById('cooldown-text');
+      
+      if (loadBtn.disabled) return;
+
+      // データを取得
+      fetchSpreadsheetData();
+
+      // ボタンを一時無効化
+      loadBtn.disabled = true;
+      loadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      let timeLeft = 60;
+      cooldownText.innerText = `Cooldown: ${timeLeft}s`;
+
+      if (cooldownTimer) clearInterval(cooldownTimer);
+
+      cooldownTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+          cooldownText.innerText = `Cooldown: ${timeLeft}s`;
+        } else {
+          clearInterval(cooldownTimer);
+          cooldownText.innerText = '';
+          loadBtn.disabled = false;
+          loadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }, 1000);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tier-tbody');
+      const search = document.getElementById('search-input').value.toLowerCase();
+      tbody.innerHTML = '';
+
+      let filtered = playersData.filter(p => {
+        const nameMatch = p.name.toLowerCase().includes(search);
+        if (activeKitFilter === 'OVERALL') return nameMatch;
+        return nameMatch && (p.kits[activeKitFilter] !== undefined && p.kits[activeKitFilter] !== '');
+      });
+
+      if (activeKitFilter === 'OVERALL') {
+        filtered.sort((a, b) => calculatePlayerOverallScore(b) - calculatePlayerOverallScore(a));
+      } else {
+        filtered.sort((a, b) => {
+          const scoreA = getTierScoreValue(a.kits[activeKitFilter]);
+          const scoreB = getTierScoreValue(b.kits[activeKitFilter]);
+          return scoreB - scoreA;
+        });
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400">プレイヤーが見つかりません。</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-brand-purple/15 transition-colors cursor-pointer";
+        tr.onclick = () => openModal(p, idx + 1);
+
+        const rankNum = idx + 1;
+        let rankBadge = `<span class="font-bold text-gray-400">${rankNum}</span>`;
+        if (rankNum === 1) rankBadge = `<span class="w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 flex items-center justify-center font-bold mx-auto">1</span>`;
+        if (rankNum === 2) rankBadge = `<span class="w-6 h-6 rounded-full bg-gray-400/20 text-gray-300 border border-gray-400/50 flex items-center justify-center font-bold mx-auto">2</span>`;
+        if (rankNum === 3) rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-600/20 text-amber-500 border border-amber-600/50 flex items-center justify-center font-bold mx-auto">3</span>`;
+
+        let kitBadges = '';
+        let subTierTextHtml = '';
+
+        if (activeKitFilter === 'OVERALL') {
+          for (const [kit, tier] of Object.entries(p.kits)) {
+            if (!tier) continue;
+            const colorClass = getTierColorClass(tier);
+            const imgTag = getKitImageTag(kit);
+            kitBadges += `<span class="tier-badge ${colorClass} mr-1 mb-1">${imgTag} ${kit}: ${tier}</span>`;
+          }
+          subTierTextHtml = '';
+        } else {
+          const tier = p.kits[activeKitFilter];
+          const colorClass = getTierColorClass(tier);
+          const imgTag = getKitImageTag(activeKitFilter);
+          kitBadges = `<span class="tier-badge ${colorClass}">${imgTag} ${activeKitFilter}: ${tier}</span>`;
+          
+          const fullTitle = formatTierFullTitle(tier);
+          if (fullTitle) {
+            subTierTextHtml = `<div class="text-[10px] text-brand-lightPurple font-mono whitespace-nowrap">${fullTitle}</div>`;
+          }
+        }
+
+        const avatarUrl = getSkinAvatarUrl(p.name, 64);
+        const editionTag = isBedrockPlayer(p.name) ? '<span class="text-[9px] text-sky-400 ml-1 font-mono">[Bedrock]</span>' : '';
+
+        tr.innerHTML = `
+          <td class="p-3 text-center">${rankBadge}</td>
+          <td class="p-3">
+            <div class="flex items-center gap-3">
+              <img src="${avatarUrl}" alt="${p.name}" onerror="this.onerror=null; this.src='${DEFAULT_STEVE_HEAD}';" class="w-8 h-8 rounded border border-brand-border bg-brand-dark shadow shrink-0 object-contain">
+              <div class="overflow-hidden">
+                <div class="font-bold text-white tracking-wide truncate">${p.name} ${editionTag}</div>
+                ${subTierTextHtml}
+              </div>
+            </div>
+          </td>
+          <td class="p-3 text-center text-base">${p.country || ''}</td>
+          <td class="p-3 text-right overflow-x-auto max-w-[200px] sm:max-w-none">${kitBadges}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openModal(player, currentRank) {
+      document.getElementById('modal-fullbody').src = getSkinFullBodyUrl(player.name);
+
+      document.getElementById('modal-name').innerText = player.name;
+      document.getElementById('modal-edition-badge').innerText = isBedrockPlayer(player.name) ? 'Bedrock Edition Player' : 'Java Edition Player';
+
+      const kitsContainer = document.getElementById('modal-kits');
+      kitsContainer.innerHTML = '';
+      for (const [kit, tier] of Object.entries(player.kits)) {
+        if (!tier) continue;
+        const colorClass = getTierColorClass(tier);
+        const imgTag = getKitImageTag(kit);
+        kitsContainer.innerHTML += `
+          <div class="bg-brand-dark p-2.5 rounded-lg border border-brand-border flex justify-between items-center">
+            <span class="text-gray-300 font-orbitron text-xs flex items-center gap-1.5">${imgTag} ${kit}</span>
+            <span class="tier-badge ${colorClass}">${tier}</span>
+          </div>
+        `;
+      }
+
+      document.getElementById('player-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('player-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

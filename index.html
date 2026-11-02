@@ -51,7 +51,6 @@
       background-attachment: fixed;
     }
 
-    /* より美しく輝く洗練されたロゴグラデーション */
     .clytiers-gradient-logo {
       background: linear-gradient(135deg, #c084fc 0%, #e879f9 40%, #a855f7 70%, #8b5cf6 100%);
       -webkit-background-clip: text;
@@ -61,12 +60,8 @@
     }
 
     @keyframes logo-glow {
-      0% {
-        filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4));
-      }
-      100% {
-        filter: drop-shadow(0 0 20px rgba(232, 121, 249, 0.8));
-      }
+      0% { filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4)); }
+      100% { filter: drop-shadow(0 0 20px rgba(232, 121, 249, 0.8)); }
     }
 
     .glow-box {
@@ -97,25 +92,25 @@
     .tier-bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; box-shadow: 0 0 8px rgba(217, 119, 6, 0.4); }
     .tier-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
 
-    /* 画像風のランクバッジデザイン */
-    .rank-banner {
+    .rank-banner-box {
       position: relative;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 6px 14px;
+      justify-content: space-between;
+      padding: 4px 8px 4px 12px;
       font-family: 'Orbitron', sans-serif;
       font-weight: 900;
-      font-size: 16px;
+      font-size: 20px;
       color: #ffffff;
-      clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+      clip-path: polygon(6% 0%, 100% 0%, 94% 100%, 0% 100%);
       text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-      min-width: 55px;
+      width: 130px;
+      height: 56px;
       overflow: hidden;
     }
 
-    /* 共通のキラリと光るエフェクト（1〜3位適用） */
-    .rank-1::after, .rank-2::after, .rank-3::after {
+    /* 💡 1位〜3位専用の光る演出（4位以降には絶対に適用されない） */
+    .rank-shining::after {
       content: '';
       position: absolute;
       top: -50%;
@@ -130,6 +125,7 @@
       );
       transform: rotate(30deg);
       animation: shine 3s infinite;
+      pointer-events: none;
     }
 
     @keyframes shine {
@@ -138,40 +134,28 @@
       100% { transform: translateX(100%) rotate(30deg); }
     }
 
-    /* 1位：ゴールド */
-    .rank-1 {
+    .rank-1-box {
       background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #d97706 100%);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
-      border: 1px solid rgba(253, 230, 138, 0.6);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
+      border: 1px solid rgba(253, 230, 138, 0.8);
     }
-
-    /* 2位：シルバー */
-    .rank-2 {
+    .rank-2-box {
       background: linear-gradient(135deg, #f3f4f6 0%, #9ca3af 50%, #4b5563 100%);
-      box-shadow: 0 0 12px rgba(209, 213, 219, 0.5);
-      border: 1px solid rgba(243, 244, 246, 0.6);
+      box-shadow: 0 0 16px rgba(209, 213, 219, 0.6);
+      border: 1px solid rgba(243, 244, 246, 0.8);
     }
-    .rank-2::after {
-      animation-delay: 0.5s;
-    }
-
-    /* 3位：ブロンズ */
-    .rank-3 {
+    .rank-2-box.rank-shining::after { animation-delay: 0.5s; }
+    .rank-3-box {
       background: linear-gradient(135deg, #fdba74 0%, #d97706 50%, #78350f 100%);
-      box-shadow: 0 0 12px rgba(217, 119, 6, 0.5);
-      border: 1px solid rgba(253, 186, 116, 0.6);
+      box-shadow: 0 0 16px rgba(217, 119, 6, 0.6);
+      border: 1px solid rgba(253, 186, 116, 0.8);
     }
-    .rank-3::after {
-      animation-delay: 1s;
-    }
-
-    /* 4位以降：ブルー系標準 */
-    .rank-normal {
+    .rank-3-box.rank-shining::after { animation-delay: 1s; }
+    
+    .rank-normal-box {
       background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
-      border: 1px solid rgba(96, 165, 250, 0.4);
-      font-size: 13px;
-      padding: 4px 10px;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+      border: 1px solid rgba(96, 165, 250, 0.7);
     }
 
     .skin-showcase-bg {
@@ -355,7 +339,7 @@
         <table class="w-full text-left border-collapse min-w-[650px]">
           <thead>
             <tr class="border-b border-brand-border bg-brand-dark/50 text-[11px] font-orbitron text-gray-400 uppercase">
-              <th class="p-3 text-center w-16">#</th>
+              <th class="p-3 text-center w-36" data-i18n="th_rank">RANK</th>
               <th class="p-3" data-i18n="th_player">PLAYER</th>
               <th class="p-3 text-center" data-i18n="th_country">COUNTRY</th>
               <th class="p-3 text-right" data-i18n="th_kits">CONTRIBUTING KITS</th>
@@ -384,7 +368,7 @@
         <div class="relative group mt-2 shrink-0">
           <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-300"></div>
           <div class="relative w-24 h-36 sm:w-28 sm:h-40 bg-brand-dark/90 rounded-xl border border-brand-purple/50 flex items-center justify-center p-2 overflow-hidden">
-            <img id="modal-fullbody" src="" alt="Skin" onerror="this.onerror=null; this.src='https://mc-heads.net/body/MHF_Steve/150';" class="h-full object-contain filter drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
+            <img id="modal-fullbody" src="" alt="Skin" onerror="handleModalSkinError(this)" class="h-full object-contain object-bottom filter drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
           </div>
         </div>
         <div class="text-left z-10 overflow-hidden mt-2">
@@ -428,6 +412,7 @@
         test_rule_4: "チート・マクロの使用禁止。キーボード2個使いも禁止です。",
         btn_load: "LOAD",
         click_player_hint: "※ プレイヤー行をクリックで詳細プロフィールを表示",
+        th_rank: "RANK",
         th_player: "PLAYER",
         th_country: "国",
         th_kits: "獲得KIT TIER",
@@ -450,6 +435,7 @@
         test_rule_4: "No cheats or macros! Dual keyboard usage is strictly forbidden.",
         btn_load: "LOAD",
         click_player_hint: "* Click on any player row to view detailed profile",
+        th_rank: "RANK",
         th_player: "PLAYER",
         th_country: "COUNTRY",
         th_kits: "CONTRIBUTING KITS",
@@ -462,25 +448,72 @@
     let playersData = [];
     let cooldownTimer = null;
 
-    const DEFAULT_STEVE_HEAD = "https://mc-heads.net/avatar/MHF_Steve/32";
-    const DEFAULT_STEVE_BODY = "https://mc-heads.net/body/MHF_Steve/150";
+    const DEFAULT_STEVE_BODY = "https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a973daf31?scale=4&overlay=true";
 
-    function isBedrockPlayer(name) {
-      return name && name.includes('.');
+    function isUuid(str) {
+      if (!str) return false;
+      const clean = str.trim().replace(/-/g, "");
+      return /^[0-9a-fA-F]{32}$/.test(clean);
     }
 
-    function getSkinAvatarUrl(name, size = 64) {
-      if (isBedrockPlayer(name)) {
-        return `https://mc-heads.net/avatar/MHF_Steve/${size}`;
-      }
-      return `https://mc-heads.net/avatar/${name}/${size}`;
+    function getCleanUuid(str) {
+      if (!str) return "";
+      return str.trim().replace(/-/g, "").toLowerCase();
     }
 
-    function getSkinFullBodyUrl(name) {
-      if (isBedrockPlayer(name)) {
-        return DEFAULT_STEVE_BODY;
+    // 💡 1. 最初の取得：UUIDが本物ならUUIDでMC-Heads、ダメならMCID（名前）でMinotar・Crafatarを引く仕組みに統一
+    function getSkinUrl(player, size = 140) {
+      if (player && isUuid(player.rawId)) {
+        return `https://mc-heads.net/body/${getCleanUuid(player.rawId)}/${size}`;
+      } else if (player && player.name) {
+        // BedrockやUUIDがない場合はMCID（名前）ベースのMinotarを最初に使うとAlex化を防げます
+        return `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/${size}.png`;
       }
-      return `https://mc-heads.net/body/${name}/150`;
+      return DEFAULT_STEVE_BODY;
+    }
+
+    // 💡 2. 失敗時のフォールバック：UUID -> 名前(Minotar) -> 名前(Crafatar/MC-Heads) と段階的に自動切り替え
+    function handleSkinError(img) {
+      const index = img.dataset.index;
+      const player = (index !== undefined && playersData[index]) ? playersData[index] : null;
+
+      const step = img.dataset.fallbackStep || "0";
+      if (step === "0") {
+        img.dataset.fallbackStep = "1";
+        // ステップ1: UUIDだった場合は名前(Minotar)に切り替え、名前だった場合はUUID/別APIに切り替え
+        if (player && isUuid(player.rawId) && player.name) {
+          img.src = `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/140.png`;
+        } else if (player && player.name) {
+          img.src = `https://crafatar.com/renders/body/${encodeURIComponent(player.name.trim())}?scale=4&overlay=true`;
+        } else {
+          img.src = DEFAULT_STEVE_BODY;
+        }
+      } else if (step === "1") {
+        img.dataset.fallbackStep = "2";
+        // ステップ2: MC-Headの名前ベースを試す
+        if (player && player.name) {
+          img.src = `https://mc-heads.net/body/${encodeURIComponent(player.name.trim())}/140`;
+        } else {
+          img.src = DEFAULT_STEVE_BODY;
+        }
+      } else {
+        img.src = DEFAULT_STEVE_BODY;
+      }
+    }
+
+    function handleModalSkinError(img) {
+      const player = window.currentModalPlayer;
+      const step = img.dataset.fallbackStep || "0";
+      if (step === "0") {
+        img.dataset.fallbackStep = "1";
+        if (player && player.name) {
+          img.src = `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/150.png`;
+        } else {
+          img.src = DEFAULT_STEVE_BODY;
+        }
+      } else {
+        img.src = DEFAULT_STEVE_BODY;
+      }
     }
 
     function formatCountry(countryStr) {
@@ -488,7 +521,7 @@
       const clean = countryStr.trim().toLowerCase();
       const map = {
         'japan': '🇯🇵', 'jp': '🇯🇵', '日本': '🇯🇵',
-        'america': '🇺🇸', 'usa': '🇺🇸', 'us': '🇺🇸',
+        'america': '🇺🇸', 'usa': '🇺🇸', 'us': '🇺🇸', 'united states': '🇺🇸',
         'denmark': '🇩🇰', 'dk': '🇩🇰',
         'germany': '🇩🇪', 'de': '🇩🇪',
         'canada': '🇨🇦', 'ca': '🇨🇦',
@@ -498,22 +531,6 @@
         'france': '🇫🇷', 'fr': '🇫🇷'
       };
       return map[clean] || countryStr;
-    }
-
-    function formatTierFullTitle(tierStr) {
-      if (!tierStr) return '';
-      const clean = tierStr.toUpperCase().trim();
-      const match = clean.match(/([HLM]T)(\d+)/);
-      if (match) {
-        const type = match[1];
-        const num = match[2];
-        let typeName = 'Tier';
-        if (type === 'HT') typeName = 'High Tier';
-        else if (type === 'MT') typeName = 'Mid Tier';
-        else if (type === 'LT') typeName = 'Low Tier';
-        return `${typeName} ${num}`;
-      }
-      return tierStr;
     }
 
     function getTierScoreValue(tierStr) {
@@ -532,10 +549,28 @@
       return 1;
     }
 
+    function formatTierFullTitle(tierStr) {
+      if (!tierStr) return '';
+      const clean = tierStr.toUpperCase().trim();
+      const match = clean.match(/([HLM]T)(\d+)/);
+      if (match) {
+        const type = match[1];
+        const num = match[2];
+        let typeName = 'Tier';
+        if (type === 'HT') typeName = 'High Tier';
+        else if (type === 'MT') typeName = 'Mid Tier';
+        else if (type === 'LT') typeName = 'Low Tier';
+        return `${typeName} ${num}`;
+      }
+      return tierStr;
+    }
+
     function calculatePlayerOverallScore(player) {
       let total = 0;
-      for (const tier of Object.values(player.kits)) {
-        total += getTierScoreValue(tier);
+      if (player.kits) {
+        for (const tier of Object.values(player.kits)) {
+          total += getTierScoreValue(tier);
+        }
       }
       return total;
     }
@@ -627,10 +662,7 @@
       tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
 
       try {
-        const part1 = "https://script.google.com/macros/s/";
-        const part2 = "AKfycbxCBMdqmqAEorlZFCbzcf4HtvqlxnRphEgQ_8C4BWGaNmovZ1PXRNGhykN9mH6F2_sX2w";
-        const part3 = "/exec";
-        const webAppUrl = part1 + part2 + part3 + "?t=" + new Date().getTime();
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbybXABVRz47h-EpEwjnfmsyUEGz2_BokIuHZDpB7vh6rOrXVsQMF8muCnLQk0mrFRG6dg/exec?t=" + new Date().getTime();
         
         const response = await fetch(webAppUrl);
         const rawData = await response.json();
@@ -642,8 +674,14 @@
               normalizedKits[k.toUpperCase()] = v ? v.toString().trim().toUpperCase() : '';
             }
           }
+
+          const isJavaUuid = isUuid(p.uuid);
+
           return {
             ...p,
+            rawId: p.uuid,
+            name: p.name,
+            isUuid: isJavaUuid,
             country: formatCountry(p.country),
             kits: normalizedKits
           };
@@ -693,7 +731,7 @@
       tbody.innerHTML = '';
 
       let filtered = playersData.filter(p => {
-        const nameMatch = p.name.toLowerCase().includes(search);
+        const nameMatch = p.name.toLowerCase().includes(search) || p.rawId.toLowerCase().includes(search);
         if (activeKitFilter === 'OVERALL') return nameMatch;
         return nameMatch && (p.kits[activeKitFilter] !== undefined && p.kits[activeKitFilter] !== '');
       });
@@ -719,17 +757,12 @@
         tr.onclick = () => openModal(p, idx + 1);
 
         const rankNum = idx + 1;
-        let rankBadge = '';
+        let rankBoxClass = 'rank-normal-box';
+        let shiningClass = '';
         
-        if (rankNum === 1) {
-          rankBadge = `<div class="rank-banner rank-1">${rankNum}.</div>`;
-        } else if (rankNum === 2) {
-          rankBadge = `<div class="rank-banner rank-2">${rankNum}.</div>`;
-        } else if (rankNum === 3) {
-          rankBadge = `<div class="rank-banner rank-3">${rankNum}.</div>`;
-        } else {
-          rankBadge = `<div class="rank-banner rank-normal">${rankNum}.</div>`;
-        }
+        if (rankNum === 1) { rankBoxClass = 'rank-1-box'; shiningClass = 'rank-shining'; }
+        else if (rankNum === 2) { rankBoxClass = 'rank-2-box'; shiningClass = 'rank-shining'; }
+        else if (rankNum === 3) { rankBoxClass = 'rank-3-box'; shiningClass = 'rank-shining'; }
 
         let kitBadges = '';
         let subTierTextHtml = '';
@@ -741,7 +774,6 @@
             const imgTag = getKitImageTag(kit);
             kitBadges += `<span class="tier-badge ${colorClass} mr-1 mb-1">${imgTag} ${kit}: ${tier}</span>`;
           }
-          subTierTextHtml = '';
         } else {
           const tier = p.kits[activeKitFilter];
           const colorClass = getTierColorClass(tier);
@@ -754,19 +786,22 @@
           }
         }
 
-        const avatarUrl = getSkinAvatarUrl(p.name, 64);
-        const editionTag = isBedrockPlayer(p.name) ? '<span class="text-[9px] text-sky-400 ml-1 font-mono">[Bedrock]</span>' : '';
+        const originalIndex = playersData.findIndex(item => item.name === p.name && item.rawId === p.rawId);
+        const bodyUrl = getSkinUrl(p, 140);
+        const editionTag = p.isUuid ? '' : '<span class="text-[9px] text-sky-400 ml-1 font-mono">[Bedrock]</span>';
 
         tr.innerHTML = `
-          <td class="p-3 text-center">${rankBadge}</td>
-          <td class="p-3">
-            <div class="flex items-center gap-3">
-              <img src="${avatarUrl}" alt="${p.name}" onerror="this.onerror=null; this.src='${DEFAULT_STEVE_HEAD}';" class="w-8 h-8 rounded border border-brand-border bg-brand-dark shadow shrink-0 object-contain">
-              <div class="overflow-hidden">
-                <div class="font-bold text-white tracking-wide truncate">${p.name} ${editionTag}</div>
-                ${subTierTextHtml}
+          <td class="py-3 px-4 text-center">
+            <div class="rank-banner-box ${rankBoxClass} ${shiningClass} mx-auto">
+              <span>${rankNum}.</span>
+              <div class="h-12 w-8 overflow-hidden flex items-end justify-center relative shrink-0 -translate-x-2">
+                <img src="${bodyUrl}" data-index="${originalIndex}" data-size="140" alt="${p.name}" class="h-32 object-contain object-bottom filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] translate-y-8" onerror="handleSkinError(this)">
               </div>
             </div>
+          </td>
+          <td class="p-3">
+            <div class="font-bold text-white tracking-wide text-sm truncate">${p.name} ${editionTag}</div>
+            ${subTierTextHtml}
           </td>
           <td class="p-3 text-center text-base">${p.country || ''}</td>
           <td class="p-3 text-right overflow-x-auto max-w-[200px] sm:max-w-none">${kitBadges}</td>
@@ -776,23 +811,30 @@
     }
 
     function openModal(player, currentRank) {
-      document.getElementById('modal-fullbody').src = getSkinFullBodyUrl(player.name);
+      window.currentModalPlayer = player;
+      const bodyUrl = getSkinUrl(player, 150);
+      const modalBody = document.getElementById('modal-fullbody');
+      modalBody.dataset.fallbackStep = "0";
+      modalBody.dataset.size = "150";
+      modalBody.src = bodyUrl;
 
       document.getElementById('modal-name').innerText = player.name;
-      document.getElementById('modal-edition-badge').innerText = isBedrockPlayer(player.name) ? 'Bedrock Edition Player' : 'Java Edition Player';
+      document.getElementById('modal-edition-badge').innerText = player.isUuid ? 'Java Edition Player (UUID)' : 'Bedrock Edition Player';
 
       const kitsContainer = document.getElementById('modal-kits');
       kitsContainer.innerHTML = '';
-      for (const [kit, tier] of Object.entries(player.kits)) {
-        if (!tier) continue;
-        const colorClass = getTierColorClass(tier);
-        const imgTag = getKitImageTag(kit);
-        kitsContainer.innerHTML += `
-          <div class="bg-brand-dark p-2.5 rounded-lg border border-brand-border flex justify-between items-center">
-            <span class="text-gray-300 font-orbitron text-xs flex items-center gap-1.5">${imgTag} ${kit}</span>
-            <span class="tier-badge ${colorClass}">${tier}</span>
-          </div>
-        `;
+      if (player.kits) {
+        for (const [kit, tier] of Object.entries(player.kits)) {
+          if (!tier) continue;
+          const colorClass = getTierColorClass(tier);
+          const imgTag = getKitImageTag(kit);
+          kitsContainer.innerHTML += `
+            <div class="bg-brand-dark p-2.5 rounded-lg border border-brand-border flex justify-between items-center">
+              <span class="text-gray-300 font-orbitron text-xs flex items-center gap-1.5">${imgTag} ${kit}</span>
+              <span class="tier-badge ${colorClass}">${tier}</span>
+            </div>
+          `;
+        }
       }
 
       document.getElementById('player-modal').classList.remove('hidden');
@@ -800,6 +842,7 @@
 
     function closeModal() {
       document.getElementById('player-modal').classList.add('hidden');
+      window.currentModalPlayer = null;
     }
   </script>
 </body>

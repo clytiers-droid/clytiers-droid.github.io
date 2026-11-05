@@ -46,51 +46,90 @@
       background-color: #07030d;
       color: #e2e8f0;
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.18) 0%, transparent 60%),
-        radial-gradient(circle at 100% 100%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+        radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.28) 0%, transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 15% 90%, rgba(139, 92, 246, 0.22) 0%, transparent 55%);
       background-attachment: fixed;
+      overflow-x: hidden;
     }
 
+    /* 🟣 ネザーの紫粒子描画用キャンバス */
+    #nether-particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    header, main, footer {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ✨ CLYTIERSロゴのなめらかなグラデーション＆発光アニメーション */
     .clytiers-gradient-logo {
-      background: linear-gradient(135deg, #c084fc 0%, #e879f9 40%, #a855f7 70%, #8b5cf6 100%);
+      background: linear-gradient(270deg, #d8b4fe, #e879f9, #c084fc, #8b5cf6, #3b82f6);
+      background-size: 400% 400%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 16px rgba(192, 132, 252, 0.5));
-      animation: logo-glow 4s ease-in-out infinite alternate;
+      animation: gradientFlow 8s ease infinite, logo-glow 3.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     @keyframes logo-glow {
-      0% { filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4)); }
-      100% { filter: drop-shadow(0 0 20px rgba(232, 121, 249, 0.8)); }
+      0% { filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.5)); transform: scale(1); }
+      100% { filter: drop-shadow(0 0 26px rgba(232, 121, 249, 0.95)); transform: scale(1.03); }
     }
 
     .glow-box {
-      box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
-      border: 1px solid rgba(139, 92, 246, 0.3);
+      box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+    .glow-box:hover {
+      box-shadow: 0 0 40px rgba(217, 70, 239, 0.35);
+      border-color: rgba(217, 70, 239, 0.7);
     }
 
     .glass-nav {
-      background: rgba(18, 9, 36, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+      background: rgba(18, 9, 36, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.3);
     }
 
     .tier-badge {
       font-size: 10px;
       font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease, filter 0.2s ease;
     }
-    .tier-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-    .tier-silver { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; box-shadow: 0 0 8px rgba(156, 163, 175, 0.4); }
-    .tier-bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; box-shadow: 0 0 8px rgba(217, 119, 6, 0.4); }
-    .tier-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
+    .tier-badge:hover {
+      transform: translateY(-2px) scale(1.05);
+      filter: brightness(1.2);
+    }
+    .tier-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
+    .tier-silver { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; box-shadow: 0 0 12px rgba(156, 163, 175, 0.5); }
+    .tier-bronze { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; box-shadow: 0 0 12px rgba(217, 119, 6, 0.5); }
+    .tier-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+
+    .rank-banner-container {
+      perspective: 800px;
+      display: inline-block;
+    }
 
     .rank-banner-box {
       position: relative;
@@ -107,9 +146,16 @@
       width: 130px;
       height: 56px;
       overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+      transform-style: preserve-3d;
     }
 
-    /* 💡 1位〜3位専用の光る演出（4位以降には絶対に適用されない） */
+    #tier-tbody tr:hover .rank-1-box,
+    #tier-tbody tr:hover .rank-2-box,
+    #tier-tbody tr:hover .rank-3-box {
+      transform: rotateX(12deg) rotateY(-12deg) scale(1.1);
+    }
+
     .rank-shining::after {
       content: '';
       position: absolute;
@@ -120,57 +166,129 @@
       background: linear-gradient(
         to right,
         rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.45) 50%,
+        rgba(255,255,255,0.6) 50%,
         rgba(255,255,255,0) 100%
       );
       transform: rotate(30deg);
-      animation: shine 3s infinite;
+      animation: shine 2.2s infinite;
       pointer-events: none;
     }
 
     @keyframes shine {
       0% { transform: translateX(-100%) rotate(30deg); }
-      20% { transform: translateX(100%) rotate(30deg); }
+      30% { transform: translateX(100%) rotate(30deg); }
       100% { transform: translateX(100%) rotate(30deg); }
     }
 
     .rank-1-box {
       background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #d97706 100%);
-      box-shadow: 0 0 16px rgba(245, 158, 11, 0.7);
-      border: 1px solid rgba(253, 230, 138, 0.8);
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.85);
+      border: 1px solid rgba(253, 230, 138, 0.95);
     }
     .rank-2-box {
       background: linear-gradient(135deg, #f3f4f6 0%, #9ca3af 50%, #4b5563 100%);
-      box-shadow: 0 0 16px rgba(209, 213, 219, 0.6);
-      border: 1px solid rgba(243, 244, 246, 0.8);
+      box-shadow: 0 0 22px rgba(209, 213, 219, 0.75);
+      border: 1px solid rgba(243, 244, 246, 0.95);
     }
-    .rank-2-box.rank-shining::after { animation-delay: 0.5s; }
+    .rank-2-box.rank-shining::after { animation-delay: 0.3s; }
     .rank-3-box {
       background: linear-gradient(135deg, #fdba74 0%, #d97706 50%, #78350f 100%);
-      box-shadow: 0 0 16px rgba(217, 119, 6, 0.6);
-      border: 1px solid rgba(253, 186, 116, 0.8);
+      box-shadow: 0 0 22px rgba(217, 119, 6, 0.75);
+      border: 1px solid rgba(253, 186, 116, 0.95);
     }
-    .rank-3-box.rank-shining::after { animation-delay: 1s; }
+    .rank-3-box.rank-shining::after { animation-delay: 0.6s; }
     
     .rank-normal-box {
       background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
-      border: 1px solid rgba(96, 165, 250, 0.7);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+      border: 1px solid rgba(96, 165, 250, 0.8);
+      transition: transform 0.3s ease;
+    }
+    #tier-tbody tr:hover .rank-normal-box {
+      transform: scale(1.05);
     }
 
     .skin-showcase-bg {
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(7, 3, 13, 0.9) 80%);
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(7, 3, 13, 0.96) 85%);
       position: relative;
       overflow: hidden;
     }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #07030d; }
-    ::-webkit-scrollbar-thumb { background: #2a164f; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+    ::-webkit-scrollbar-thumb { background: #3b1f6d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+    @keyframes contentFadeIn {
+      0% { opacity: 0; transform: translateY(14px) scale(0.97); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    section:not(.hidden) {
+      animation: contentFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes rowCascadeIn {
+      0% { opacity: 0; transform: translateY(15px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .tier-row-animated {
+      opacity: 0;
+      animation: rowCascadeIn 0.3s ease forwards;
+    }
+
+    @keyframes scanWave {
+      0% { background-position: 0 -100vh; }
+      100% { background-position: 0 100vh; }
+    }
+
+    .scan-effect {
+      position: relative;
+    }
+    .scan-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(217, 70, 239, 0.15) 50%, transparent 100%);
+      background-size: 100% 200px;
+      background-repeat: no-repeat;
+      animation: scanWave 0.8s ease-in-out;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    #tier-tbody tr {
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    #tier-tbody tr:hover {
+      background-color: rgba(168, 85, 247, 0.15) !important;
+    }
+
+    #player-modal:not(.hidden) > div {
+      animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes modalPop {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    button, .kit-tab {
+      transition: all 0.2s ease;
+    }
+    button:hover, .kit-tab:hover {
+      filter: brightness(1.2);
+    }
+
+    .kit-tab.active {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+      border-color: #d8b4fe !important;
+    }
   </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- 🟣 ネザーの紫粒子エフェクト用キャンバス -->
+  <canvas id="nether-particles"></canvas>
 
   <!-- Header -->
   <header class="sticky top-0 z-50 glass-nav">
@@ -221,7 +339,7 @@
     <!-- HOME TAB -->
     <section id="tab-home" class="space-y-8">
       <div class="glow-box bg-brand-card rounded-2xl p-6 sm:p-10 text-center relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
           OFFICIAL COMMUNITY & TIER LIST
         </div>
@@ -231,7 +349,7 @@
         <p class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed" data-i18n="hero_desc">
           clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。
         </p>
-        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:scale-105">
+        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
           <i class="fa-brands fa-discord text-xl"></i>
           <span data-i18n="join_server">DISCORD サーバーに参加</span>
         </a>
@@ -317,7 +435,7 @@
         <!-- Load Button & CoolDown Display -->
         <div class="flex flex-col items-end shrink-0 mb-2">
           <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4 mb-0.5"></span>
-          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg transition-all hover:scale-105">
+          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
             <i class="fa-solid fa-rotate" id="load-icon"></i> <span data-i18n="btn_load">LOAD</span>
           </button>
         </div>
@@ -335,7 +453,7 @@
       </div>
 
       <!-- Tiers Table -->
-      <div class="overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
+      <div id="table-container" class="overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
         <table class="w-full text-left border-collapse min-w-[650px]">
           <thead>
             <tr class="border-b border-brand-border bg-brand-dark/50 text-[11px] font-orbitron text-gray-400 uppercase">
@@ -354,7 +472,7 @@
   </main>
 
   <!-- Player Detail Modal -->
-  <div id="player-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+  <div id="player-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="handleModalBgClick(event)">
     <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-md w-full p-5 sm:p-6 relative glow-box overflow-hidden shadow-2xl">
       <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
         <i class="fa-solid fa-xmark"></i>
@@ -372,7 +490,8 @@
           </div>
         </div>
         <div class="text-left z-10 overflow-hidden mt-2">
-          <h3 id="modal-name" class="text-xl sm:text-2xl font-black font-orbitron text-white tracking-wide mb-2 truncate glow-text"></h3>
+          <h3 id="modal-name" class="text-xl sm:text-2xl font-black font-orbitron text-white tracking-wide mb-1 truncate glow-text"></h3>
+          <div class="text-xs font-mono text-brand-lightPurple font-bold mb-2" id="modal-total-score">Total: 0 pts</div>
           <div class="inline-flex items-center gap-2 bg-brand-dark/80 px-2.5 py-1 rounded-lg border border-brand-border">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-[10px] sm:text-[11px] font-mono text-gray-300" id="modal-edition-badge">Verified Player</span>
@@ -381,9 +500,9 @@
       </div>
 
       <h4 class="text-xs font-bold font-orbitron text-gray-300 mb-2 uppercase flex items-center gap-2 mt-2">
-        <i class="fa-solid fa-layer-group text-brand-purple"></i> <span data-i18n="modal_kit_breakdown">Kit Tier Breakdown</span>
+        <i class="fa-solid fa-layer-group text-brand-purple"></i> <span data-i18n="modal_kit_breakdown">Kit Tier Breakdown & Points</span>
       </h4>
-      <div id="modal-kits" class="grid grid-cols-2 gap-2 text-xs max-h-44 overflow-y-auto pr-1">
+      <div id="modal-kits" class="grid grid-cols-1 gap-2 text-xs max-h-44 overflow-y-auto pr-1">
         <!-- Dynamic -->
       </div>
     </div>
@@ -394,6 +513,63 @@
   </footer>
 
   <script>
+    /* ========================================================
+       🟣 ネザーの紫粒子（ふわふわ浮遊エフェクト・上限50個）
+       ======================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('nether-particles');
+      const ctx = canvas.getContext('2d');
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      const particles = [];
+      const particleCount = 45;
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2.5 + 1,
+          speedX: (Math.random() - 0.5) * 0.4,
+          speedY: -Math.random() * 0.6 - 0.2,
+          opacity: Math.random() * 0.6 + 0.2,
+          color: Math.random() > 0.5 ? '#d8b4fe' : '#a855f7'
+        });
+      }
+
+      function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.opacity;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#c084fc';
+          ctx.fill();
+
+          p.x += p.speedX;
+          p.y += p.speedY;
+
+          if (p.y < -10) {
+            p.y = canvas.height + 10;
+            p.x = Math.random() * canvas.width;
+          }
+          if (p.x < -10) p.x = canvas.width + 10;
+          if (p.x > canvas.width + 10) p.x = -10;
+        });
+
+        requestAnimationFrame(animateParticles);
+      }
+      animateParticles();
+    });
+
     const i18nData = {
       ja: {
         hero_desc: "clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。",
@@ -416,7 +592,7 @@
         th_player: "PLAYER",
         th_country: "国",
         th_kits: "獲得KIT TIER",
-        modal_kit_breakdown: "Kit別詳細 Tier"
+        modal_kit_breakdown: "Kit別詳細 Tier & ポイント"
       },
       en: {
         hero_desc: "Welcome to clytiers! Take tier tests in our official Discord server and climb the leaderboard.",
@@ -439,7 +615,7 @@
         th_player: "PLAYER",
         th_country: "COUNTRY",
         th_kits: "CONTRIBUTING KITS",
-        modal_kit_breakdown: "Kit Tier Breakdown"
+        modal_kit_breakdown: "Kit Tier Breakdown & Points"
       }
     };
 
@@ -461,18 +637,15 @@
       return str.trim().replace(/-/g, "").toLowerCase();
     }
 
-    // 💡 1. 最初の取得：UUIDが本物ならUUIDでMC-Heads、ダメならMCID（名前）でMinotar・Crafatarを引く仕組みに統一
     function getSkinUrl(player, size = 140) {
       if (player && isUuid(player.rawId)) {
         return `https://mc-heads.net/body/${getCleanUuid(player.rawId)}/${size}`;
       } else if (player && player.name) {
-        // BedrockやUUIDがない場合はMCID（名前）ベースのMinotarを最初に使うとAlex化を防げます
         return `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/${size}.png`;
       }
       return DEFAULT_STEVE_BODY;
     }
 
-    // 💡 2. 失敗時のフォールバック：UUID -> 名前(Minotar) -> 名前(Crafatar/MC-Heads) と段階的に自動切り替え
     function handleSkinError(img) {
       const index = img.dataset.index;
       const player = (index !== undefined && playersData[index]) ? playersData[index] : null;
@@ -480,7 +653,6 @@
       const step = img.dataset.fallbackStep || "0";
       if (step === "0") {
         img.dataset.fallbackStep = "1";
-        // ステップ1: UUIDだった場合は名前(Minotar)に切り替え、名前だった場合はUUID/別APIに切り替え
         if (player && isUuid(player.rawId) && player.name) {
           img.src = `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/140.png`;
         } else if (player && player.name) {
@@ -490,7 +662,6 @@
         }
       } else if (step === "1") {
         img.dataset.fallbackStep = "2";
-        // ステップ2: MC-Headの名前ベースを試す
         if (player && player.name) {
           img.src = `https://mc-heads.net/body/${encodeURIComponent(player.name.trim())}/140`;
         } else {
@@ -540,13 +711,14 @@
       if (match) {
         const type = match[1];
         const num = parseInt(match[2]);
-        let baseScore = (7 - num) * 30;
-        if (type === 'HT') baseScore += 3;
-        else if (type === 'MT') baseScore += 2;
-        else if (type === 'LT') baseScore += 1;
-        return baseScore;
+        let baseScore = (6 - num) * 100;
+        let modifier = 0;
+        if (type === 'HT') modifier = 30;
+        else if (type === 'MT') modifier = 15;
+        else if (type === 'LT') modifier = 0;
+        return baseScore + modifier;
       }
-      return 1;
+      return 10;
     }
 
     function formatTierFullTitle(tierStr) {
@@ -657,7 +829,15 @@
     async function fetchSpreadsheetData() {
       const tbody = document.getElementById('tier-tbody');
       const loadIcon = document.getElementById('load-icon');
+      const container = document.getElementById('table-container');
+
       if (loadIcon) loadIcon.classList.add('fa-spin');
+
+      if (container) {
+        container.classList.remove('scan-effect');
+        void container.offsetWidth;
+        container.classList.add('scan-effect');
+      }
 
       tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
 
@@ -753,8 +933,13 @@
 
       filtered.forEach((p, idx) => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-brand-purple/15 transition-colors cursor-pointer";
-        tr.onclick = () => openModal(p, idx + 1);
+        const delay = Math.min(idx * 0.03, 1.0);
+        tr.className = "tier-row-animated cursor-pointer border-b border-brand-border/40";
+        tr.style.animationDelay = `${delay}s`;
+        
+        tr.onclick = () => {
+          openModal(p, idx + 1);
+        };
 
         const rankNum = idx + 1;
         let rankBoxClass = 'rank-normal-box';
@@ -792,10 +977,12 @@
 
         tr.innerHTML = `
           <td class="py-3 px-4 text-center">
-            <div class="rank-banner-box ${rankBoxClass} ${shiningClass} mx-auto">
-              <span>${rankNum}.</span>
-              <div class="h-12 w-8 overflow-hidden flex items-end justify-center relative shrink-0 -translate-x-2">
-                <img src="${bodyUrl}" data-index="${originalIndex}" data-size="140" alt="${p.name}" class="h-32 object-contain object-bottom filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] translate-y-8" onerror="handleSkinError(this)">
+            <div class="rank-banner-container">
+              <div class="rank-banner-box ${rankBoxClass} ${shiningClass} mx-auto">
+                <span>${rankNum}.</span>
+                <div class="h-10 w-7 overflow-hidden flex items-end justify-center relative shrink-0 -translate-x-1">
+                  <img src="${bodyUrl}" data-index="${originalIndex}" data-size="140" alt="${p.name}" class="h-28 object-contain object-bottom filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] translate-y-7" onerror="handleSkinError(this)">
+                </div>
               </div>
             </div>
           </td>
@@ -820,6 +1007,9 @@
 
       document.getElementById('modal-name').innerText = player.name;
       document.getElementById('modal-edition-badge').innerText = player.isUuid ? 'Java Edition Player (UUID)' : 'Bedrock Edition Player';
+      
+      const totalScore = calculatePlayerOverallScore(player);
+      document.getElementById('modal-total-score').innerText = `Total Score: ${totalScore} pts`;
 
       const kitsContainer = document.getElementById('modal-kits');
       kitsContainer.innerHTML = '';
@@ -828,10 +1018,14 @@
           if (!tier) continue;
           const colorClass = getTierColorClass(tier);
           const imgTag = getKitImageTag(kit);
+          const kitScore = getTierScoreValue(tier);
           kitsContainer.innerHTML += `
             <div class="bg-brand-dark p-2.5 rounded-lg border border-brand-border flex justify-between items-center">
               <span class="text-gray-300 font-orbitron text-xs flex items-center gap-1.5">${imgTag} ${kit}</span>
-              <span class="tier-badge ${colorClass}">${tier}</span>
+              <div class="flex items-center gap-3">
+                <span class="text-[11px] font-mono text-brand-lightPurple font-bold">+${kitScore} pts</span>
+                <span class="tier-badge ${colorClass}">${tier}</span>
+              </div>
             </div>
           `;
         }
@@ -843,6 +1037,12 @@
     function closeModal() {
       document.getElementById('player-modal').classList.add('hidden');
       window.currentModalPlayer = null;
+    }
+
+    function handleModalBgClick(event) {
+      if (event.target.id === 'player-modal') {
+        closeModal();
+      }
     }
   </script>
 </body>

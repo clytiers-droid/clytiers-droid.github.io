@@ -796,7 +796,7 @@
 
     let activeKitFilter = 'OVERALL';
     let playersData = [];
-    let isDataLoaded = false; // データの重複ロードを防ぐフラグ
+    let isDataLoaded = false;
     let cooldownTimer = null;
     let loggedInUser = null;
 
@@ -880,21 +880,28 @@
       return map[clean] || countryStr;
     }
 
+    /* 🟣 新しい正確なポイント設計マップ */
     function getTierScoreValue(tierStr) {
       if (!tierStr) return 0;
       const clean = tierStr.toUpperCase().trim();
-      const match = clean.match(/([HLM]T)(\d+)/);
-      if (match) {
-        const type = match[1];
-        const num = parseInt(match[2]);
-        let baseScore = (6 - num) * 100;
-        let modifier = 0;
-        if (type === 'HT') modifier = 30;
-        else if (type === 'MT') modifier = 15;
-        else if (type === 'LT') modifier = 0;
-        return baseScore + modifier;
-      }
-      return 10;
+      const scoreMap = {
+        'HT1': 65,
+        'MT1': 55,
+        'LT1': 45,
+        'HT2': 34,
+        'MT2': 28,
+        'LT2': 22,
+        'HT3': 16,
+        'MT3': 12,
+        'LT3': 8,
+        'HT4': 6,
+        'MT4': 5,
+        'LT4': 4,
+        'HT5': 3,
+        'MT5': 2,
+        'LT5': 1
+      };
+      return scoreMap[clean] || 0;
     }
 
     function formatTierFullTitle(tierStr) {
@@ -951,7 +958,7 @@
     }
 
     /* ========================================================
-       🟣 ルーター＆タブ切り替え機構 (/#/tier と /#/tier/mcid に対応)
+       🟣 ルーター＆タブ切り替え機構
        ======================================================== */
     function switchTab(tabName, updateHash = true) {
       document.getElementById('tab-home').classList.add('hidden');
@@ -1038,7 +1045,6 @@
       tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
 
       try {
-        // 🟣 Cloudflare Workersプロキシ経由でデータを取得
         const webAppUrl = "https://system.clytiers.workers.dev/?t=" + new Date().getTime();
         
         const response = await fetch(webAppUrl);
@@ -1268,7 +1274,7 @@
     }
 
     /* ========================================================
-       🟣 プロフィール画面（完全に別物のモーダル）
+       🟣 プロフィール画面
        ======================================================== */
     function openProfileModal() {
       if (!loggedInUser) return;
@@ -1361,7 +1367,6 @@
       }
     }
 
-    /* 🟣 SHA-256を用いたログイン認証ロジック（Cloudflare Workersプロキシ経由） */
     async function handleLoginSubmit() {
       const mcidInput = document.getElementById('login-mcid-input').value.trim();
       const passwordInput = document.getElementById('login-password-input').value;
@@ -1388,7 +1393,6 @@
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-        // 🟣 Cloudflare Workersプロキシ経由でログイン認証を実行
         const baseUrl = "https://system.clytiers.workers.dev";
         const url = `${baseUrl}?action=login&mcid=${encodeURIComponent(mcidInput)}&passwordHash=${passwordHash}`;
         

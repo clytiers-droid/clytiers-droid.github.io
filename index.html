@@ -53,7 +53,6 @@
       overflow-x: hidden;
     }
 
-    /* 🟣 背景用ネザー粒子描画キャンバス */
     #nether-particles {
       position: fixed;
       top: 0; left: 0;
@@ -62,7 +61,6 @@
       z-index: 10;
     }
 
-    /* 🟣 タップ時専用・最前面（一番上）に描画するキャンバス */
     #click-particles-canvas {
       position: fixed;
       top: 0; left: 0;
@@ -81,7 +79,6 @@
       z-index: 20;
     }
 
-    /* ✨ CLYTIERSロゴのなめらかなグラデーション＆発光アニメーション */
     .clytiers-gradient-logo {
       background: linear-gradient(270deg, #d8b4fe, #e879f9, #c084fc, #8b5cf6, #3b82f6);
       background-size: 400% 400%;
@@ -493,49 +490,64 @@
 
     <!-- TIERS TAB -->
     <section id="tab-tier" class="hidden space-y-6">
-      <!-- Kit Tabs & Load Button Container -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <!-- Kit Tabs & Load Button & Test/Lang Controls Container -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-brand-card p-3 rounded-xl border border-brand-border">
         <!-- Kit Tabs -->
-        <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none flex-1" id="kit-tabs-container">
-          <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
+        <div class="flex overflow-x-auto gap-2 pb-1 scrollbar-none flex-1">
+          <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
             <i class="fa-solid fa-trophy"></i> OVERALL
           </button>
-          <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
+          <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
             <img src="./IMG_8234.png" alt="Sword" class="w-4 h-4 object-contain"> SWORD
           </button>
-          <button onclick="filterKit('AXE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="AXE">
+          <button onclick="filterKit('AXE')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="AXE">
             <img src="./IMG_8246.png" alt="Axe" class="w-4 h-4 object-contain"> AXE
           </button>
-          <button onclick="filterKit('MACE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="MACE">
+          <button onclick="filterKit('MACE')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="MACE">
             <img src="./IMG_8236.png" alt="Mace" class="w-4 h-4 object-contain"> MACE
           </button>
-          <button onclick="filterKit('SPEAR')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SPEAR">
+          <button onclick="filterKit('SPEAR')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SPEAR">
             <img src="./IMG_8233.png" alt="Spear" class="w-4 h-4 object-contain"> SPEAR
           </button>
-          <button onclick="filterKit('CRYSTAL')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CRYSTAL">
+          <button onclick="filterKit('CRYSTAL')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CRYSTAL">
             <img src="./IMG_8232.png" alt="Crystal" class="w-4 h-4 object-contain"> CRYSTAL
           </button>
-          <button onclick="filterKit('SHIELD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SHIELD">
+          <button onclick="filterKit('SHIELD')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SHIELD">
             <img src="./IMG_8237.png" alt="Shield" class="w-4 h-4 object-contain"> SHIELD
           </button>
-          <button onclick="filterKit('POT')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="POT">
+          <button onclick="filterKit('POT')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="POT">
             <img src="./IMG_8239.png" alt="Pot" class="w-4 h-4 object-contain"> POT
           </button>
-          <button onclick="filterKit('CART')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CART">
+          <button onclick="filterKit('CART')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CART">
             <img src="./IMG_8244.png" alt="Cart" class="w-4 h-4 object-contain"> CART
           </button>
-          <button onclick="filterKit('UHC')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="UHC">
+          <button onclick="filterKit('UHC')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="UHC">
             <img src="./IMG_8238.png" alt="UHC" class="w-4 h-4 object-contain"> UHC
           </button>
         </div>
 
-        <!-- Load Button & CoolDown Display -->
-        <div class="flex flex-col items-end shrink-0 mb-2">
-          <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4 mb-0.5"></span>
-          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
+        <!-- 追加：test 項目 & JA/EN 切り替えボタン & LOADボタンのバランス調整エリア -->
+        <div class="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 lg:border-l border-brand-border lg:pl-3">
+          <!-- test 項目ボタン -->
+          <button onclick="handleTestClick()" class="kit-tab bg-brand-dark hover:bg-brand-border text-brand-accent px-3 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="TEST">
+            <i class="fa-solid fa-flask"></i> test
+          </button>
+
+          <!-- JA / EN 切り替えボタン -->
+          <button id="lang-switch-btn" onclick="toggleLanguage()" class="bg-brand-dark hover:bg-brand-border text-gray-300 px-3 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border">
+            <i class="fa-solid fa-globe text-brand-lightPurple"></i> <span id="lang-label">JA</span>
+          </button>
+
+          <!-- Load Button -->
+          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40">
             <i class="fa-solid fa-rotate" id="load-icon"></i> <span>LOAD</span>
           </button>
         </div>
+      </div>
+
+      <!-- CoolDown Display -->
+      <div class="flex justify-end -mt-3">
+        <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4"></span>
       </div>
 
       <!-- Search & Filters -->
@@ -656,7 +668,6 @@
           <label class="block text-[11px] font-mono text-gray-400 mb-1">Password</label>
           <input type="password" id="login-password-input" placeholder="Enter password..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
         </div>
-        <!-- エラーメッセージ表示用 -->
         <div id="login-error-msg" class="text-[11px] text-red-400 text-center hidden"></div>
         <button id="login-submit-btn" onclick="handleLoginSubmit()" class="w-full bg-brand-purple hover:bg-brand-lightPurple text-white py-2.5 rounded-lg font-orbitron text-xs font-bold transition-all mt-2">ログイン</button>
       </div>
@@ -668,9 +679,6 @@
   </footer>
 
   <script>
-    /* ========================================================
-       🟣 クリック時：サクッと消える波紋 ＆ 最前面で約0.7秒で消える飛び散り粒子
-       ======================================================== */
     const clickParticles = [];
 
     window.addEventListener('click', (e) => {
@@ -807,19 +815,18 @@
       window.addEventListener('hashchange', handleRouting);
 
       checkPersistedLogin();
-      fetchQueueStatus(); // キューの状況を自動取得
+      fetchQueueStatus();
     });
 
     let activeKitFilter = 'OVERALL';
+    let currentLang = 'JA';
     let playersData = [];
     let isDataLoaded = false;
     let cooldownTimer = null;
     let loggedInUserDiscordId = null;
     let loggedInUserName = null;
 
-    // Cloudflare WorkersのベースURL
     const WORKER_API_BASE = "https://system.clytiers.workers.dev";
-
     const DEFAULT_STEVE_BODY = "https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a973daf31?scale=4&overlay=true";
 
     function isUuid(str) {
@@ -845,7 +852,6 @@
     function handleSkinError(img) {
       const index = img.dataset.index;
       const player = (index !== undefined && playersData[index]) ? playersData[index] : null;
-
       const step = img.dataset.fallbackStep || "0";
       if (step === "0") {
         img.dataset.fallbackStep = "1";
@@ -970,9 +976,6 @@
       return 'tier-blue';
     }
 
-    /* ========================================================
-       🟣 ルーター＆タブ切り替え機構
-       ======================================================== */
     function switchTab(tabName, updateHash = true) {
       document.getElementById('tab-home').classList.add('hidden');
       document.getElementById('tab-tier').classList.add('hidden');
@@ -1003,7 +1006,6 @@
 
     function handleRouting() {
       const hash = window.location.hash;
-      
       if (hash.startsWith('#/tier/')) {
         const username = decodeURIComponent(hash.replace('#/tier/', ''));
         switchTab('tier', false);
@@ -1031,13 +1033,28 @@
       
       document.querySelectorAll('.kit-tab').forEach(btn => {
         if (btn.getAttribute('data-kit') === kit) {
-          btn.className = "kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
+          btn.className = "kit-tab active bg-brand-purple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
         } else {
-          btn.className = "kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border";
+          btn.className = "kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border";
         }
       });
 
       renderTable();
+    }
+
+    // 🟣 「test」項目が押された時の動作
+    function handleTestClick() {
+      filterKit('TEST');
+      // ここにtest項目選択時の独自の挙動やテストデータの表示処理を記述できます
+      console.log("Test kit filter selected.");
+    }
+
+    // 🟣 JA / EN 言語切り替えボタンの動作
+    function toggleLanguage() {
+      currentLang = currentLang === 'JA' ? 'EN' : 'JA';
+      document.getElementById('lang-label').innerText = currentLang;
+      // 言語に応じたUIやメッセージの切り替え処理をここに拡張できます
+      console.log("Language switched to:", currentLang);
     }
 
     async function fetchSpreadsheetData(force = false) {
@@ -1059,7 +1076,6 @@
 
       try {
         const webAppUrl = `${WORKER_API_BASE}/?t=` + new Date().getTime();
-        
         const response = await fetch(webAppUrl);
         const rawData = await response.json();
 
@@ -1131,10 +1147,11 @@
       let filtered = playersData.filter(p => {
         const nameMatch = p.name.toLowerCase().includes(search) || p.rawId.toLowerCase().includes(search);
         if (activeKitFilter === 'OVERALL') return nameMatch;
+        if (activeKitFilter === 'TEST') return nameMatch; // test項目用のフィルタ
         return nameMatch && (p.kits[activeKitFilter] !== undefined && p.kits[activeKitFilter] !== '');
       });
 
-      if (activeKitFilter === 'OVERALL') {
+      if (activeKitFilter === 'OVERALL' || activeKitFilter === 'TEST') {
         filtered.sort((a, b) => calculatePlayerOverallScore(b) - calculatePlayerOverallScore(a));
       } else {
         filtered.sort((a, b) => {
@@ -1170,7 +1187,7 @@
         let kitBadges = '';
         let subTierTextHtml = '';
 
-        if (activeKitFilter === 'OVERALL') {
+        if (activeKitFilter === 'OVERALL' || activeKitFilter === 'TEST') {
           for (const [kit, tier] of Object.entries(p.kits)) {
             if (!tier) continue;
             const colorClass = getTierColorClass(tier);
@@ -1287,9 +1304,6 @@
       }
     }
 
-    /* ========================================================
-       🟣 プロフィール画面
-       ======================================================== */
     function openProfileModal() {
       if (!loggedInUserDiscordId) return;
       document.getElementById('profile-username').innerText = loggedInUserDiscordId + (loggedInUserName ? ` (${loggedInUserName})` : '');
@@ -1306,9 +1320,6 @@
       }
     }
 
-    /* ========================================================
-       🟣 ログインメニュー・認証関連ロジック (Discord ID対応)
-       ======================================================== */
     function toggleUserMenu(event) {
       if (event) event.stopPropagation();
       const menu = document.getElementById('user-dropdown-menu');
@@ -1347,7 +1358,7 @@
         if (welcomeTitle) welcomeTitle.innerText = `COMPETITIVE MINECRAFT PVP TIERS`;
         if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。`;
       }
-      fetchQueueStatus(); // ログイン状態が変わったらキュー表示も更新
+      fetchQueueStatus();
     }
 
     function checkPersistedLogin() {
@@ -1391,7 +1402,6 @@
       }
     }
 
-    /* 🟣 q（キュー）の状況を取得して照合する関数 */
     async function fetchQueueStatus() {
       try {
         const res = await fetch(`${WORKER_API_BASE}/api/queue/status`);
@@ -1423,7 +1433,6 @@
       }
     }
 
-    /* 🟣 qに参加・退出する関数 */
     async function toggleQueueAction(actionType) {
       if (!loggedInUserDiscordId) {
         alert("キューを操作するにはログインが必要です。");
@@ -1450,7 +1459,6 @@
       }
     }
 
-    /* 🟣 ログイン処理 (Discord ID & パスワードハッシュ) */
     async function handleLoginSubmit() {
       const discordIdInput = document.getElementById('login-discordid-input') ? document.getElementById('login-discordid-input').value.trim() : "";
       const passwordInput = document.getElementById('login-password-input').value;

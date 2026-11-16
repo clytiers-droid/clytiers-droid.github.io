@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta name="google-site-verification" content="vToBu8DZbx1TLc7hWl4jukVEtWVZnOPuFB1TsU8C05A" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>clytiers | Official Tier List & Community</title>
@@ -801,7 +800,7 @@
     let loggedInUserDiscordId = null;
     let loggedInUserName = null;
 
-    // Cloudflare WorkersのベースURL（必要に応じて書き換えてください）
+    // Cloudflare WorkersのベースURL
     const WORKER_API_BASE = "https://system.clytiers.workers.dev";
 
     const DEFAULT_STEVE_BODY = "https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a973daf31?scale=4&overlay=true";
@@ -888,21 +887,11 @@
       if (!tierStr) return 0;
       const clean = tierStr.toUpperCase().trim();
       const scoreMap = {
-        'HT1': 65,
-        'MT1': 55,
-        'LT1': 45,
-        'HT2': 34,
-        'MT2': 28,
-        'LT2': 22,
-        'HT3': 16,
-        'MT3': 12,
-        'LT3': 8,
-        'HT4': 6,
-        'MT4': 5,
-        'LT4': 4,
-        'HT5': 3,
-        'MT5': 2,
-        'LT5': 1
+        'HT1': 65, 'MT1': 55, 'LT1': 45,
+        'HT2': 34, 'MT2': 28, 'LT2': 22,
+        'HT3': 16, 'MT3': 12, 'LT3': 8,
+        'HT4': 6, 'MT4': 5, 'LT4': 4,
+        'HT5': 3, 'MT5': 2, 'LT5': 1
       };
       return scoreMap[clean] || 0;
     }
@@ -1381,7 +1370,7 @@
     }
 
     async function handleLoginSubmit() {
-      const discordIdInput = document.getElementById('login-discordid-input').value.trim();
+      const discordIdInput = document.getElementById('login-discordid-input') ? document.getElementById('login-discordid-input').value.trim() : "";
       const passwordInput = document.getElementById('login-password-input').value;
       const errorMsg = document.getElementById('login-error-msg');
       const submitBtn = document.getElementById('login-submit-btn');
@@ -1406,7 +1395,7 @@
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-        const url = `${WORKER_API_BASE}?action=login&discordId=${encodeURIComponent(discordIdInput)}&passwordHash=${passwordHash}`;
+        const url = `${WORKER_API_BASE}/?action=login&discordId=${encodeURIComponent(discordIdInput)}&passwordHash=${passwordHash}`;
         
         const response = await fetch(url);
         const result = await response.json();
@@ -1417,7 +1406,7 @@
           updateHeaderLoginState(result.discordId || discordIdInput, result.name);
 
           closeLoginModal();
-          document.getElementById('login-discordid-input').value = '';
+          if (document.getElementById('login-discordid-input')) document.getElementById('login-discordid-input').value = '';
           document.getElementById('login-password-input').value = '';
         } else {
           if (errorMsg) {

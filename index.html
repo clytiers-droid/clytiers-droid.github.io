@@ -795,7 +795,7 @@
 
     let activeKitFilter = 'OVERALL';
     let playersData = [];
-    let isDataLoaded = false; // データの重複ロードを防ぐフラグ
+    let isDataLoaded = false;
     let cooldownTimer = null;
     let loggedInUser = null;
 
@@ -879,19 +879,42 @@
       return map[clean] || countryStr;
     }
 
+    /* 🟣 画像の配点テーブルに基づくポイント計算ロジック */
     function getTierScoreValue(tierStr) {
       if (!tierStr) return 0;
       const clean = tierStr.toUpperCase().trim();
+      
+      const scoreMap = {
+        'HT1': 65,
+        'MT1': 55,
+        'LT1': 45,
+        'HT2': 34,
+        'MT2': 28,
+        'LT2': 22,
+        'HT3': 16,
+        'MT3': 12,
+        'LT3': 8,
+        'HT4': 6,
+        'MT4': 5,
+        'LT4': 4,
+        'HT5': 3,
+        'MT5': 2,
+        'LT5': 1
+      };
+
+      if (scoreMap[clean] !== undefined) {
+        return scoreMap[clean];
+      }
+
+      // 予備のフォールバック処理（万一定義外の文字列があった場合）
       const match = clean.match(/([HLM]T)(\d+)/);
       if (match) {
         const type = match[1];
         const num = parseInt(match[2]);
-        let baseScore = (6 - num) * 100;
-        let modifier = 0;
-        if (type === 'HT') modifier = 30;
-        else if (type === 'MT') modifier = 15;
-        else if (type === 'LT') modifier = 0;
-        return baseScore + modifier;
+        let baseScore = (6 - num) * 10;
+        if (type === 'HT') baseScore += 4;
+        else if (type === 'MT') baseScore += 2;
+        return Math.max(1, baseScore);
       }
       return 10;
     }
@@ -950,7 +973,7 @@
     }
 
     /* ========================================================
-       🟣 ルーター＆タブ切り替え機構 (/#/tier と /#/tier/mcid に対応)
+       🟣 ルーター＆タブ切り替え機構
        ======================================================== */
     function switchTab(tabName, updateHash = true) {
       document.getElementById('tab-home').classList.add('hidden');
@@ -1037,7 +1060,6 @@
       tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
 
       try {
-        // 🟣 Cloudflare Workersプロキシ経由でデータを取得
         const webAppUrl = "https://system.clytiers.workers.dev/?t=" + new Date().getTime();
         
         const response = await fetch(webAppUrl);
@@ -1266,9 +1288,6 @@
       }
     }
 
-    /* ========================================================
-       🟣 プロフィール画面（完全に別物のモーダル）
-       ======================================================== */
     function openProfileModal() {
       if (!loggedInUser) return;
       document.getElementById('profile-username').innerText = loggedInUser;
@@ -1285,9 +1304,6 @@
       }
     }
 
-    /* ========================================================
-       🟣 ログインメニュー・認証関連ロジック
-       ======================================================== */
     function toggleUserMenu(event) {
       if (event) event.stopPropagation();
       const menu = document.getElementById('user-dropdown-menu');
@@ -1360,7 +1376,6 @@
       }
     }
 
-    /* 🟣 SHA-256を用いたログイン認証ロジック（Cloudflare Workersプロキシ経由） */
     async function handleLoginSubmit() {
       const mcidInput = document.getElementById('login-mcid-input').value.trim();
       const passwordInput = document.getElementById('login-password-input').value;
@@ -1387,7 +1402,6 @@
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-        // 🟣 Cloudflare Workersプロキシ経由でログイン認証を実行
         const baseUrl = "https://system.clytiers.workers.dev";
         const url = `${baseUrl}?action=login&mcid=${encodeURIComponent(mcidInput)}&passwordHash=${passwordHash}`;
         
@@ -1399,7 +1413,7 @@
           updateHeaderLoginState(result.name);
 
           closeLoginModal();
-          document.getElementById('login-mcid-input').value = '';
+5          document.getElementById('login-mcid-input').value = '';
           document.getElementById('login-password-input').value = '';
         } else {
           if (errorMsg) {
@@ -1411,7 +1425,7 @@
         console.error("Login error:", err);
         if (errorMsg) {
           errorMsg.innerText = "通信エラーが発生しました。";
-          errorMsg.classList.remove('hidden');
+          errorMsg.classList.add('hidden');
         }
       } finally {
         submitBtn.disabled = false;

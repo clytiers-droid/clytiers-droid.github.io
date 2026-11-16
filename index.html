@@ -53,6 +53,7 @@
       overflow-x: hidden;
     }
 
+    /* 🟣 背景用ネザー粒子描画キャンバス */
     #nether-particles {
       position: fixed;
       top: 0; left: 0;
@@ -61,6 +62,7 @@
       z-index: 10;
     }
 
+    /* 🟣 タップ時専用・最前面（一番上）に描画するキャンバス */
     #click-particles-canvas {
       position: fixed;
       top: 0; left: 0;
@@ -79,6 +81,7 @@
       z-index: 20;
     }
 
+    /* ✨ CLYTIERSロゴのなめらかなグラデーション＆発光アニメーション */
     .clytiers-gradient-logo {
       background: linear-gradient(270deg, #d8b4fe, #e879f9, #c084fc, #8b5cf6, #3b82f6);
       background-size: 400% 400%;
@@ -303,6 +306,7 @@
       border-color: #d8b4fe !important;
     }
 
+    /* ✨ 水面の一滴＋紫の霧 */
     .water-ripple-outer, .water-ripple-inner, .water-ripple-fog {
       position: fixed;
       border-radius: 50%;
@@ -347,67 +351,60 @@
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col justify-between" onclick="closeUserMenuOutside(event)">
 
+  <!-- 🟣 背景の通常ネザー粒子用キャンバス -->
   <canvas id="nether-particles"></canvas>
+  <!-- 🟣 タップ時専用・最前面のネザー粒子用キャンバス -->
   <canvas id="click-particles-canvas"></canvas>
 
-  <!-- Header (ここに test と JA/EN ボタンを追加) -->
+  <!-- Header -->
   <header class="sticky top-0 glass-nav">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 h-16 flex items-center justify-between">
       <nav class="flex items-center justify-between w-full font-orbitron font-bold text-xs sm:text-sm">
-        <div class="flex items-center gap-1 sm:gap-2">
-          <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
-            <i class="fa-solid fa-house text-xs"></i><span>Home</span>
-          </button>
-          <button onclick="switchTab('tier')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tier">
-            <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
-          </button>
-          <!-- 追加した test 項目 -->
-          <button onclick="handleHeaderTestClick()" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-test">
-            <i class="fa-solid fa-flask text-xs text-brand-accent"></i><span>test</span>
-          </button>
-        </div>
+        <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
+          <i class="fa-solid fa-house text-xs"></i><span>Home</span>
+        </button>
 
-        <a href="#" onclick="switchTab('home')" class="font-black text-base sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-2">
+        <button onclick="switchTab('tier')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tier">
+          <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
+        </button>
+
+        <a href="#" onclick="switchTab('home')" class="font-black text-lg sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-4">
           CLYTIERS
         </a>
 
-        <div class="flex items-center gap-1 sm:gap-2">
-          <!-- JA / EN 切り替えボタン -->
-          <button id="lang-switch-btn" onclick="toggleLanguage()" class="bg-brand-card hover:bg-brand-border text-gray-300 px-2.5 py-1.5 rounded text-xs flex items-center gap-1 border border-brand-border transition-colors">
-            <i class="fa-solid fa-globe text-brand-lightPurple text-[10px]"></i> <span id="lang-label">JA</span>
+        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300">
+          <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
+        </a>
+
+        <!-- Login / User Menu Area -->
+        <div id="auth-nav-container" class="relative">
+          <!-- 未ログイン時 -->
+          <button id="login-open-btn" onclick="openLoginModal()" class="bg-brand-card border border-brand-border px-3 py-1.5 rounded text-xs flex items-center gap-1.5 hover:border-brand-purple text-gray-300 hover:text-brand-lightPurple transition-colors">
+            <i class="fa-solid fa-right-to-bracket text-brand-purple"></i>
+            <span>Login</span>
           </button>
 
-          <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300">
-            <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
-          </a>
-
-          <!-- Login / User Menu Area -->
-          <div id="auth-nav-container" class="relative">
-            <button id="login-open-btn" onclick="openLoginModal()" class="bg-brand-card border border-brand-border px-3 py-1.5 rounded text-xs flex items-center gap-1.5 hover:border-brand-purple text-gray-300 hover:text-brand-lightPurple transition-colors">
-              <i class="fa-solid fa-right-to-bracket text-brand-purple"></i>
-              <span>Login</span>
+          <!-- ログイン成功時（ドロップダウン用トリガー） -->
+          <div id="user-menu-wrapper" class="hidden relative">
+            <button onclick="toggleUserMenu(event)" class="bg-brand-card border border-brand-purple px-3 py-1.5 rounded text-xs flex items-center gap-2 hover:border-brand-lightPurple text-white transition-colors shadow-[0_0_10px_rgba(139,92,246,0.3)]">
+              <i class="fa-solid fa-ellipsis-vertical text-brand-lightPurple text-sm px-0.5"></i>
             </button>
 
-            <div id="user-menu-wrapper" class="hidden relative">
-              <button onclick="toggleUserMenu(event)" class="bg-brand-card border border-brand-purple px-3 py-1.5 rounded text-xs flex items-center gap-2 hover:border-brand-lightPurple text-white transition-colors shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-                <i class="fa-solid fa-ellipsis-vertical text-brand-lightPurple text-sm px-0.5"></i>
+            <!-- 最前面に表示するドロップダウンメニュー -->
+            <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-brand-card border border-brand-border rounded-xl shadow-2xl py-1.5 z-[999] font-sans">
+              <button onclick="openProfileModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
+                <i class="fa-solid fa-user text-brand-purple w-4"></i>
+                <span>プロフィール画面</span>
               </button>
-
-              <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-brand-card border border-brand-border rounded-xl shadow-2xl py-1.5 z-[999] font-sans">
-                <button onclick="openProfileModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                  <i class="fa-solid fa-user text-brand-purple w-4"></i>
-                  <span>プロフィール画面</span>
-                </button>
-                <button onclick="openMyTierModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                  <i class="fa-solid fa-trophy text-amber-400 w-4"></i>
-                  <span>my tier</span>
-                </button>
-                <div class="h-px bg-brand-border my-1"></div>
-                <button onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2.5 transition-colors">
-                  <i class="fa-solid fa-right-from-bracket w-4"></i>
-                  <span>ログアウト</span>
-                </button>
-              </div>
+              <button onclick="openMyTierModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
+                <i class="fa-solid fa-trophy text-amber-400 w-4"></i>
+                <span>my tier</span>
+              </button>
+              <div class="h-px bg-brand-border my-1"></div>
+              <button onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2.5 transition-colors">
+                <i class="fa-solid fa-right-from-bracket w-4"></i>
+                <span>ログアウト</span>
+              </button>
             </div>
           </div>
         </div>
@@ -418,13 +415,14 @@
   <!-- Main Content Area -->
   <main class="max-w-7xl mx-auto px-3 sm:px-6 py-6 flex-grow w-full">
 
-    <!-- HOME TAB (APIからのキューパネルを削除) -->
+    <!-- HOME TAB -->
     <section id="tab-home" class="space-y-8">
       <div class="glow-box bg-brand-card rounded-2xl p-6 sm:p-10 text-center relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
           OFFICIAL COMMUNITY & TIER LIST
         </div>
+        <!-- ログイン時のウェルカムメッセージ対応 -->
         <h1 id="home-welcome-title" class="text-2xl sm:text-5xl font-black font-orbitron text-white tracking-wide mb-4">
           COMPETITIVE MINECRAFT PVP TIERS
         </h1>
@@ -560,6 +558,7 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
 
+      <!-- Profile Header -->
       <div class="skin-showcase-bg rounded-xl p-4 sm:p-5 mb-4 border border-brand-border flex items-center gap-4 sm:gap-6 relative">
         <div class="absolute top-2 left-3 text-[9px] font-orbitron text-brand-lightPurple tracking-widest uppercase opacity-70">
           // PLAYER TIER DETAIL
@@ -589,7 +588,7 @@
     </div>
   </div>
 
-  <!-- Profile Modal -->
+  <!-- Profile Modal (完全別物) -->
   <div id="profile-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="handleProfileModalBgClick(event)">
     <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-md w-full p-6 relative glow-box shadow-2xl">
       <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
@@ -604,7 +603,7 @@
       </div>
       <div class="space-y-4 text-xs font-mono">
         <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
-          <span class="text-gray-400 block mb-1">Logged in Discord ID:</span>
+          <span class="text-gray-400 block mb-1">Logged in as:</span>
           <span id="profile-username" class="text-white font-bold text-sm"></span>
         </div>
         <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
@@ -629,17 +628,18 @@
           <i class="fa-solid fa-user-lock text-xl"></i>
         </div>
         <h3 class="text-lg font-bold font-orbitron text-white">PLAYER LOGIN</h3>
-        <p class="text-xs text-gray-400 mt-1">プレイヤーログイン（Discord ID）</p>
+        <p class="text-xs text-gray-400 mt-1">プレイヤーログイン</p>
       </div>
       <div class="space-y-3">
         <div>
-          <label class="block text-[11px] font-mono text-gray-400 mb-1">Discord ID</label>
-          <input type="text" id="login-discordid-input" placeholder="Enter Discord ID..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
+          <label class="block text-[11px] font-mono text-gray-400 mb-1">MCID / UUID</label>
+          <input type="text" id="login-mcid-input" placeholder="Enter your MCID..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
         </div>
         <div>
           <label class="block text-[11px] font-mono text-gray-400 mb-1">Password</label>
           <input type="password" id="login-password-input" placeholder="Enter password..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
         </div>
+        <!-- エラーメッセージ表示用 -->
         <div id="login-error-msg" class="text-[11px] text-red-400 text-center hidden"></div>
         <button id="login-submit-btn" onclick="handleLoginSubmit()" class="w-full bg-brand-purple hover:bg-brand-lightPurple text-white py-2.5 rounded-lg font-orbitron text-xs font-bold transition-all mt-2">ログイン</button>
       </div>
@@ -651,6 +651,9 @@
   </footer>
 
   <script>
+    /* ========================================================
+       🟣 クリック時：サクッと消える波紋 ＆ 最前面で約0.7秒で消える飛び散り粒子
+       ======================================================== */
     const clickParticles = [];
 
     window.addEventListener('click', (e) => {
@@ -783,6 +786,7 @@
       }
       animate();
 
+      // ページ読み込み・ハッシュ変更時のルーター初期化
       handleRouting();
       window.addEventListener('hashchange', handleRouting);
 
@@ -790,14 +794,11 @@
     });
 
     let activeKitFilter = 'OVERALL';
-    let currentLang = 'JA';
     let playersData = [];
-    let isDataLoaded = false;
+    let isDataLoaded = false; // データの重複ロードを防ぐフラグ
     let cooldownTimer = null;
-    let loggedInUserDiscordId = null;
-    let loggedInUserName = null;
+    let loggedInUser = null;
 
-    const WORKER_API_BASE = "https://system.clytiers.workers.dev";
     const DEFAULT_STEVE_BODY = "https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a973daf31?scale=4&overlay=true";
 
     function isUuid(str) {
@@ -823,6 +824,7 @@
     function handleSkinError(img) {
       const index = img.dataset.index;
       const player = (index !== undefined && playersData[index]) ? playersData[index] : null;
+
       const step = img.dataset.fallbackStep || "0";
       if (step === "0") {
         img.dataset.fallbackStep = "1";
@@ -947,13 +949,15 @@
       return 'tier-blue';
     }
 
+    /* ========================================================
+       🟣 ルーター＆タブ切り替え機構 (/#/tier と /#/tier/mcid に対応)
+       ======================================================== */
     function switchTab(tabName, updateHash = true) {
       document.getElementById('tab-home').classList.add('hidden');
       document.getElementById('tab-tier').classList.add('hidden');
       
       document.getElementById('nav-home').classList.replace('text-brand-lightPurple', 'text-gray-300');
       document.getElementById('nav-tier').classList.replace('text-brand-lightPurple', 'text-gray-300');
-      document.getElementById('nav-test').classList.replace('text-brand-lightPurple', 'text-gray-300');
 
       const targetTab = document.getElementById(`tab-${tabName}`);
       const targetNav = document.getElementById(`nav-${tabName}`);
@@ -976,13 +980,9 @@
       }
     }
 
-    function handleHeaderTestClick() {
-      switchTab('tier', true);
-      filterKit('TEST');
-    }
-
     function handleRouting() {
       const hash = window.location.hash;
+      
       if (hash.startsWith('#/tier/')) {
         const username = decodeURIComponent(hash.replace('#/tier/', ''));
         switchTab('tier', false);
@@ -1019,12 +1019,6 @@
       renderTable();
     }
 
-    function toggleLanguage() {
-      currentLang = currentLang === 'JA' ? 'EN' : 'JA';
-      document.getElementById('lang-label').innerText = currentLang;
-      console.log("Language switched to:", currentLang);
-    }
-
     async function fetchSpreadsheetData(force = false) {
       if (isDataLoaded && !force) return;
 
@@ -1043,7 +1037,9 @@
       tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
 
       try {
-        const webAppUrl = `${WORKER_API_BASE}/?t=` + new Date().getTime();
+        // 🟣 Cloudflare Workersプロキシ経由でデータを取得
+        const webAppUrl = "https://system.clytiers.workers.dev/?t=" + new Date().getTime();
+        
         const response = await fetch(webAppUrl);
         const rawData = await response.json();
 
@@ -1061,7 +1057,6 @@
             ...p,
             rawId: p.uuid,
             name: p.name,
-            discordId: p.discordId || '',
             isUuid: isJavaUuid,
             country: formatCountry(p.country),
             kits: normalizedKits
@@ -1115,11 +1110,10 @@
       let filtered = playersData.filter(p => {
         const nameMatch = p.name.toLowerCase().includes(search) || p.rawId.toLowerCase().includes(search);
         if (activeKitFilter === 'OVERALL') return nameMatch;
-        if (activeKitFilter === 'TEST') return nameMatch;
         return nameMatch && (p.kits[activeKitFilter] !== undefined && p.kits[activeKitFilter] !== '');
       });
 
-      if (activeKitFilter === 'OVERALL' || activeKitFilter === 'TEST') {
+      if (activeKitFilter === 'OVERALL') {
         filtered.sort((a, b) => calculatePlayerOverallScore(b) - calculatePlayerOverallScore(a));
       } else {
         filtered.sort((a, b) => {
@@ -1155,7 +1149,7 @@
         let kitBadges = '';
         let subTierTextHtml = '';
 
-        if (activeKitFilter === 'OVERALL' || activeKitFilter === 'TEST') {
+        if (activeKitFilter === 'OVERALL') {
           for (const [kit, tier] of Object.entries(p.kits)) {
             if (!tier) continue;
             const colorClass = getTierColorClass(tier);
@@ -1272,9 +1266,12 @@
       }
     }
 
+    /* ========================================================
+       🟣 プロフィール画面（完全に別物のモーダル）
+       ======================================================== */
     function openProfileModal() {
-      if (!loggedInUserDiscordId) return;
-      document.getElementById('profile-username').innerText = loggedInUserDiscordId + (loggedInUserName ? ` (${loggedInUserName})` : '');
+      if (!loggedInUser) return;
+      document.getElementById('profile-username').innerText = loggedInUser;
       document.getElementById('profile-modal').classList.remove('hidden');
     }
 
@@ -1288,6 +1285,9 @@
       }
     }
 
+    /* ========================================================
+       🟣 ログインメニュー・認証関連ロジック
+       ======================================================== */
     function toggleUserMenu(event) {
       if (event) event.stopPropagation();
       const menu = document.getElementById('user-dropdown-menu');
@@ -1304,20 +1304,19 @@
       }
     }
 
-    function updateHeaderLoginState(discordId, name) {
-      loggedInUserDiscordId = discordId;
-      loggedInUserName = name;
+    function updateHeaderLoginState(username) {
+      loggedInUser = username;
       const loginBtn = document.getElementById('login-open-btn');
       const userWrapper = document.getElementById('user-menu-wrapper');
       
       const welcomeTitle = document.getElementById('home-welcome-title');
       const welcomeDesc = document.getElementById('home-welcome-desc');
 
-      if (discordId) {
+      if (username) {
         if (loginBtn) loginBtn.classList.add('hidden');
         if (userWrapper) userWrapper.classList.remove('hidden');
 
-        if (welcomeTitle) welcomeTitle.innerText = `おかえりなさい、${name || discordId}さん`;
+        if (welcomeTitle) welcomeTitle.innerText = `おかえりなさい、${username}さん`;
         if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！今日もランキング上位を目指してベストを尽くしましょう。`;
       } else {
         if (loginBtn) loginBtn.classList.remove('hidden');
@@ -1329,17 +1328,15 @@
     }
 
     function checkPersistedLogin() {
-      const savedDiscordId = localStorage.getItem('clytiers_logged_in_discord_id');
-      const savedName = localStorage.getItem('clytiers_user_name');
-      if (savedDiscordId) {
-        updateHeaderLoginState(savedDiscordId, savedName);
+      const savedUser = localStorage.getItem('clytiers_logged_in_user');
+      if (savedUser) {
+        updateHeaderLoginState(savedUser);
       }
     }
 
     function handleLogout() {
-      localStorage.removeItem('clytiers_logged_in_discord_id');
-      localStorage.removeItem('clytiers_user_name');
-      updateHeaderLoginState(null, null);
+      localStorage.removeItem('clytiers_logged_in_user');
+      updateHeaderLoginState(null);
       const menu = document.getElementById('user-dropdown-menu');
       if (menu) menu.classList.add('hidden');
       window.location.hash = '#/home';
@@ -1347,37 +1344,32 @@
     }
 
     function openMyTierModal() {
-      if (!loggedInUserName && !loggedInUserDiscordId) return;
-      const found = playersData.find(p => 
-        (loggedInUserName && p.name.toLowerCase() === loggedInUserName.toLowerCase()) || 
-        (loggedInUserDiscordId && p.discordId === loggedInUserDiscordId)
-      );
+      if (!loggedInUser) return;
+      const found = playersData.find(p => p.name.toLowerCase() === loggedInUser.toLowerCase() || p.rawId.toLowerCase() === loggedInUser.toLowerCase());
       if (found) {
         openModal(found, true);
       } else {
         fetchSpreadsheetData().then(() => {
-          const foundAfterLoad = playersData.find(p => 
-            (loggedInUserName && p.name.toLowerCase() === loggedInUserName.toLowerCase()) || 
-            (loggedInUserDiscordId && p.discordId === loggedInUserDiscordId)
-          );
+          const foundAfterLoad = playersData.find(p => p.name.toLowerCase() === loggedInUser.toLowerCase() || p.rawId.toLowerCase() === loggedInUser.toLowerCase());
           if (foundAfterLoad) {
             openModal(foundAfterLoad, true);
           } else {
-            alert(`あなたに紐づくTierデータが見つかりませんでした。`);
+            alert(`ユーザー「${loggedInUser}」のTierデータが見つかりませんでした。`);
           }
         });
       }
     }
 
+    /* 🟣 SHA-256を用いたログイン認証ロジック（Cloudflare Workersプロキシ経由） */
     async function handleLoginSubmit() {
-      const discordIdInput = document.getElementById('login-discordid-input') ? document.getElementById('login-discordid-input').value.trim() : "";
+      const mcidInput = document.getElementById('login-mcid-input').value.trim();
       const passwordInput = document.getElementById('login-password-input').value;
       const errorMsg = document.getElementById('login-error-msg');
       const submitBtn = document.getElementById('login-submit-btn');
       
-      if (!discordIdInput || !passwordInput) {
+      if (!mcidInput || !passwordInput) {
         if (errorMsg) {
-          errorMsg.innerText = "Discord IDとパスワードを入力してください。";
+          errorMsg.innerText = "MCIDとパスワードを入力してください。";
           errorMsg.classList.remove('hidden');
         }
         return;
@@ -1395,22 +1387,23 @@
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-        const url = `${WORKER_API_BASE}/?action=login&discordId=${encodeURIComponent(discordIdInput)}&passwordHash=${passwordHash}`;
+        // 🟣 Cloudflare Workersプロキシ経由でログイン認証を実行
+        const baseUrl = "https://system.clytiers.workers.dev";
+        const url = `${baseUrl}?action=login&mcid=${encodeURIComponent(mcidInput)}&passwordHash=${passwordHash}`;
         
         const response = await fetch(url);
         const result = await response.json();
 
         if (result.success) {
-          localStorage.setItem('clytiers_logged_in_discord_id', result.discordId || discordIdInput);
-          localStorage.setItem('clytiers_user_name', result.name);
-          updateHeaderLoginState(result.discordId || discordIdInput, result.name);
+          localStorage.setItem('clytiers_logged_in_user', result.name);
+          updateHeaderLoginState(result.name);
 
           closeLoginModal();
-          if (document.getElementById('login-discordid-input')) document.getElementById('login-discordid-input').value = '';
+          document.getElementById('login-mcid-input').value = '';
           document.getElementById('login-password-input').value = '';
         } else {
           if (errorMsg) {
-            errorMsg.innerText = result.message || "Discord IDまたはパスワードが違います。";
+            errorMsg.innerText = result.message || "MCIDまたはパスワードが違います。";
             errorMsg.classList.remove('hidden');
           }
         }
@@ -1418,7 +1411,7 @@
         console.error("Login error:", err);
         if (errorMsg) {
           errorMsg.innerText = "通信エラーが発生しました。";
-          errorMsg.classList.add('hidden');
+          errorMsg.classList.remove('hidden');
         }
       } finally {
         submitBtn.disabled = false;

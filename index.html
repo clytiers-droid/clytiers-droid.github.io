@@ -429,6 +429,23 @@
         <p id="home-welcome-desc" class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed">
           clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。
         </p>
+
+        <!-- 🟣 q（キュー）の状況リアルタイム表示エリア -->
+        <div id="queue-status-box" class="bg-brand-dark/90 border border-brand-purple/50 rounded-xl p-4 max-w-md mx-auto mb-6 text-left font-mono text-xs shadow-lg">
+          <div class="flex justify-between items-center mb-2 border-b border-brand-border pb-2">
+            <span class="text-brand-lightPurple font-orbitron font-bold"><i class="fa-solid fa-users mr-1.5"></i> Q (キュー) 待ち状況</span>
+            <button onclick="fetchQueueStatus()" class="text-gray-400 hover:text-white text-[10px]"><i class="fa-solid fa-rotate"></i> 更新</button>
+          </div>
+          <div id="queue-info-content" class="space-y-1.5 text-gray-300">
+            <div>現在の待ち人数: <span id="queue-count" class="text-white font-bold">読み込み中...</span></div>
+            <div id="user-queue-position" class="text-brand-accent font-bold">ログインしてキュー状況を確認</div>
+          </div>
+          <div class="mt-3 flex gap-2">
+            <button onclick="toggleQueueAction('join')" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-1.5 rounded font-orbitron text-[11px] font-bold shadow transition-all">Qに参加</button>
+            <button onclick="toggleQueueAction('leave')" class="flex-1 bg-red-600/80 hover:bg-red-500 text-white py-1.5 rounded font-orbitron text-[11px] font-bold shadow transition-all">Qから退出</button>
+          </div>
+        </div>
+
         <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
           <i class="fa-brands fa-discord text-xl"></i>
           <span>DISCORD サーバーに参加</span>
@@ -588,7 +605,7 @@
     </div>
   </div>
 
-  <!-- Profile Modal (完全別物) -->
+  <!-- Profile Modal -->
   <div id="profile-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="handleProfileModalBgClick(event)">
     <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-md w-full p-6 relative glow-box shadow-2xl">
       <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
@@ -633,7 +650,7 @@
       <div class="space-y-3">
         <div>
           <label class="block text-[11px] font-mono text-gray-400 mb-1">Discord ID</label>
-          <input type="text" id="login-discordid-input" placeholder="Enter your Discord ID..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
+          <input type="text" id="login-discordid-input" placeholder="Enter Discord ID..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
         </div>
         <div>
           <label class="block text-[11px] font-mono text-gray-400 mb-1">Password</label>
@@ -786,11 +803,11 @@
       }
       animate();
 
-      // ルーター初期化
       handleRouting();
       window.addEventListener('hashchange', handleRouting);
 
       checkPersistedLogin();
+      fetchQueueStatus(); // キューの状況を自動取得
     });
 
     let activeKitFilter = 'OVERALL';
@@ -886,14 +903,18 @@
     function getTierScoreValue(tierStr) {
       if (!tierStr) return 0;
       const clean = tierStr.toUpperCase().trim();
-      const scoreMap = {
-        'HT1': 65, 'MT1': 55, 'LT1': 45,
-        'HT2': 34, 'MT2': 28, 'LT2': 22,
-        'HT3': 16, 'MT3': 12, 'LT3': 8,
-        'HT4': 6, 'MT4': 5, 'LT4': 4,
-        'HT5': 3, 'MT5': 2, 'LT5': 1
-      };
-      return scoreMap[clean] || 0;
+      const match = clean.match(/([HLM]T)(\d+)/);
+      if (match) {
+        const type = match[1];
+        const num = parseInt(match[2]);
+        let baseScore = (6 - num) * 100;
+        let modifier = 0;
+        if (type === 'HT') modifier = 30;
+        else if (type === 'MT') modifier = 15;
+        else if (type === 'LT') modifier = 0;
+        return baseScore + modifier;
+      }
+      return 10;
     }
 
     function formatTierFullTitle(tierStr) {
@@ -1326,6 +1347,7 @@
         if (welcomeTitle) welcomeTitle.innerText = `COMPETITIVE MINECRAFT PVP TIERS`;
         if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。`;
       }
+      fetchQueueStatus(); // ログイン状態が変わったらキュー表示も更新
     }
 
     function checkPersistedLogin() {
@@ -1369,6 +1391,66 @@
       }
     }
 
+    /* 🟣 q（キュー）の状況を取得して照合する関数 */
+    async function fetchQueueStatus() {
+      try {
+        const res = await fetch(`${WORKER_API_BASE}/api/queue/status`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.queue)) {
+          const count = data.queue.length;
+          document.getElementById('queue-count').innerText = `${count} 人`;
+
+          const posEl = document.getElementById('user-queue-position');
+          if (loggedInUserDiscordId) {
+            const index = data.queue.findIndex(q => q.discordId === loggedInUserDiscordId);
+            if (index !== -1) {
+              posEl.innerText = `あなたは現在 ${index + 1} 番目に並んでいます！`;
+              posEl.className = "text-emerald-400 font-bold";
+            } else {
+              posEl.innerText = "あなたは現在キューに並んでいません。";
+              posEl.className = "text-gray-400";
+            }
+          } else {
+            posEl.innerText = "ログインするとあなたの並び順を確認できます";
+            posEl.className = "text-brand-accent";
+          }
+        }
+      } catch (err) {
+        console.error("Queue fetch error:", err);
+        const countEl = document.getElementById('queue-count');
+        if (countEl) countEl.innerText = "取得失敗";
+      }
+    }
+
+    /* 🟣 qに参加・退出する関数 */
+    async function toggleQueueAction(actionType) {
+      if (!loggedInUserDiscordId) {
+        alert("キューを操作するにはログインが必要です。");
+        openLoginModal();
+        return;
+      }
+
+      try {
+        const res = await fetch(`${WORKER_API_BASE}/api/queue/toggle`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ discordId: loggedInUserDiscordId, action: actionType })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert(actionType === 'join' ? "キューに参加しました！" : "キューから退出しました。");
+          fetchQueueStatus();
+        } else {
+          alert(`エラー: ${result.error || "処理に失敗しました"}`);
+        }
+      } catch (err) {
+        console.error("Queue action error:", err);
+        alert("通信エラーが発生しました。");
+      }
+    }
+
+    /* 🟣 ログイン処理 (Discord ID & パスワードハッシュ) */
     async function handleLoginSubmit() {
       const discordIdInput = document.getElementById('login-discordid-input') ? document.getElementById('login-discordid-input').value.trim() : "";
       const passwordInput = document.getElementById('login-password-input').value;

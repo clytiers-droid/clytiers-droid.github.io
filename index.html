@@ -303,7 +303,6 @@
       border-color: #d8b4fe !important;
     }
 
-    /* ✨ 水面の一滴＋紫の霧 */
     .water-ripple-outer, .water-ripple-inner, .water-ripple-fog {
       position: fixed;
       border-radius: 50%;
@@ -348,60 +347,67 @@
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col justify-between" onclick="closeUserMenuOutside(event)">
 
-  <!-- 🟣 背景の通常ネザー粒子用キャンバス -->
   <canvas id="nether-particles"></canvas>
-  <!-- 🟣 タップ時専用・最前面のネザー粒子用キャンバス -->
   <canvas id="click-particles-canvas"></canvas>
 
-  <!-- Header -->
+  <!-- Header (ここに test と JA/EN ボタンを追加) -->
   <header class="sticky top-0 glass-nav">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 h-16 flex items-center justify-between">
       <nav class="flex items-center justify-between w-full font-orbitron font-bold text-xs sm:text-sm">
-        <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
-          <i class="fa-solid fa-house text-xs"></i><span>Home</span>
-        </button>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
+            <i class="fa-solid fa-house text-xs"></i><span>Home</span>
+          </button>
+          <button onclick="switchTab('tier')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tier">
+            <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
+          </button>
+          <!-- 追加した test 項目 -->
+          <button onclick="handleHeaderTestClick()" class="nav-btn transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-test">
+            <i class="fa-solid fa-flask text-xs text-brand-accent"></i><span>test</span>
+          </button>
+        </div>
 
-        <button onclick="switchTab('tier')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tier">
-          <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
-        </button>
-
-        <a href="#" onclick="switchTab('home')" class="font-black text-lg sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-4">
+        <a href="#" onclick="switchTab('home')" class="font-black text-base sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-2">
           CLYTIERS
         </a>
 
-        <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300">
-          <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
-        </a>
-
-        <!-- Login / User Menu Area -->
-        <div id="auth-nav-container" class="relative">
-          <!-- 未ログイン時 -->
-          <button id="login-open-btn" onclick="openLoginModal()" class="bg-brand-card border border-brand-border px-3 py-1.5 rounded text-xs flex items-center gap-1.5 hover:border-brand-purple text-gray-300 hover:text-brand-lightPurple transition-colors">
-            <i class="fa-solid fa-right-to-bracket text-brand-purple"></i>
-            <span>Login</span>
+        <div class="flex items-center gap-1 sm:gap-2">
+          <!-- JA / EN 切り替えボタン -->
+          <button id="lang-switch-btn" onclick="toggleLanguage()" class="bg-brand-card hover:bg-brand-border text-gray-300 px-2.5 py-1.5 rounded text-xs flex items-center gap-1 border border-brand-border transition-colors">
+            <i class="fa-solid fa-globe text-brand-lightPurple text-[10px]"></i> <span id="lang-label">JA</span>
           </button>
 
-          <!-- ログイン成功時（ドロップダウン用トリガー） -->
-          <div id="user-menu-wrapper" class="hidden relative">
-            <button onclick="toggleUserMenu(event)" class="bg-brand-card border border-brand-purple px-3 py-1.5 rounded text-xs flex items-center gap-2 hover:border-brand-lightPurple text-white transition-colors shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-              <i class="fa-solid fa-ellipsis-vertical text-brand-lightPurple text-sm px-0.5"></i>
+          <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="transition-colors hover:text-brand-lightPurple px-1.5 sm:px-3 py-1 flex items-center gap-1 text-gray-300">
+            <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
+          </a>
+
+          <!-- Login / User Menu Area -->
+          <div id="auth-nav-container" class="relative">
+            <button id="login-open-btn" onclick="openLoginModal()" class="bg-brand-card border border-brand-border px-3 py-1.5 rounded text-xs flex items-center gap-1.5 hover:border-brand-purple text-gray-300 hover:text-brand-lightPurple transition-colors">
+              <i class="fa-solid fa-right-to-bracket text-brand-purple"></i>
+              <span>Login</span>
             </button>
 
-            <!-- 最前面に表示するドロップダウンメニュー -->
-            <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-brand-card border border-brand-border rounded-xl shadow-2xl py-1.5 z-[999] font-sans">
-              <button onclick="openProfileModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-user text-brand-purple w-4"></i>
-                <span>プロフィール画面</span>
+            <div id="user-menu-wrapper" class="hidden relative">
+              <button onclick="toggleUserMenu(event)" class="bg-brand-card border border-brand-purple px-3 py-1.5 rounded text-xs flex items-center gap-2 hover:border-brand-lightPurple text-white transition-colors shadow-[0_0_10px_rgba(139,92,246,0.3)]">
+                <i class="fa-solid fa-ellipsis-vertical text-brand-lightPurple text-sm px-0.5"></i>
               </button>
-              <button onclick="openMyTierModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-trophy text-amber-400 w-4"></i>
-                <span>my tier</span>
-              </button>
-              <div class="h-px bg-brand-border my-1"></div>
-              <button onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-right-from-bracket w-4"></i>
-                <span>ログアウト</span>
-              </button>
+
+              <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-brand-card border border-brand-border rounded-xl shadow-2xl py-1.5 z-[999] font-sans">
+                <button onclick="openProfileModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
+                  <i class="fa-solid fa-user text-brand-purple w-4"></i>
+                  <span>プロフィール画面</span>
+                </button>
+                <button onclick="openMyTierModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
+                  <i class="fa-solid fa-trophy text-amber-400 w-4"></i>
+                  <span>my tier</span>
+                </button>
+                <div class="h-px bg-brand-border my-1"></div>
+                <button onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2.5 transition-colors">
+                  <i class="fa-solid fa-right-from-bracket w-4"></i>
+                  <span>ログアウト</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -412,37 +418,19 @@
   <!-- Main Content Area -->
   <main class="max-w-7xl mx-auto px-3 sm:px-6 py-6 flex-grow w-full">
 
-    <!-- HOME TAB -->
+    <!-- HOME TAB (APIからのキューパネルを削除) -->
     <section id="tab-home" class="space-y-8">
       <div class="glow-box bg-brand-card rounded-2xl p-6 sm:p-10 text-center relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
           OFFICIAL COMMUNITY & TIER LIST
         </div>
-        <!-- ログイン時のウェルカムメッセージ対応 -->
         <h1 id="home-welcome-title" class="text-2xl sm:text-5xl font-black font-orbitron text-white tracking-wide mb-4">
           COMPETITIVE MINECRAFT PVP TIERS
         </h1>
         <p id="home-welcome-desc" class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed">
           clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。
         </p>
-
-        <!-- 🟣 q（キュー）の状況リアルタイム表示エリア -->
-        <div id="queue-status-box" class="bg-brand-dark/90 border border-brand-purple/50 rounded-xl p-4 max-w-md mx-auto mb-6 text-left font-mono text-xs shadow-lg">
-          <div class="flex justify-between items-center mb-2 border-b border-brand-border pb-2">
-            <span class="text-brand-lightPurple font-orbitron font-bold"><i class="fa-solid fa-users mr-1.5"></i> Q (キュー) 待ち状況</span>
-            <button onclick="fetchQueueStatus()" class="text-gray-400 hover:text-white text-[10px]"><i class="fa-solid fa-rotate"></i> 更新</button>
-          </div>
-          <div id="queue-info-content" class="space-y-1.5 text-gray-300">
-            <div>現在の待ち人数: <span id="queue-count" class="text-white font-bold">読み込み中...</span></div>
-            <div id="user-queue-position" class="text-brand-accent font-bold">ログインしてキュー状況を確認</div>
-          </div>
-          <div class="mt-3 flex gap-2">
-            <button onclick="toggleQueueAction('join')" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white py-1.5 rounded font-orbitron text-[11px] font-bold shadow transition-all">Qに参加</button>
-            <button onclick="toggleQueueAction('leave')" class="flex-1 bg-red-600/80 hover:bg-red-500 text-white py-1.5 rounded font-orbitron text-[11px] font-bold shadow transition-all">Qから退出</button>
-          </div>
-        </div>
-
         <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
           <i class="fa-brands fa-discord text-xl"></i>
           <span>DISCORD サーバーに参加</span>
@@ -490,64 +478,49 @@
 
     <!-- TIERS TAB -->
     <section id="tab-tier" class="hidden space-y-6">
-      <!-- Kit Tabs & Load Button & Test/Lang Controls Container -->
-      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-brand-card p-3 rounded-xl border border-brand-border">
+      <!-- Kit Tabs & Load Button Container -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <!-- Kit Tabs -->
-        <div class="flex overflow-x-auto gap-2 pb-1 scrollbar-none flex-1">
-          <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
+        <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none flex-1" id="kit-tabs-container">
+          <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
             <i class="fa-solid fa-trophy"></i> OVERALL
           </button>
-          <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
+          <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
             <img src="./IMG_8234.png" alt="Sword" class="w-4 h-4 object-contain"> SWORD
           </button>
-          <button onclick="filterKit('AXE')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="AXE">
+          <button onclick="filterKit('AXE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="AXE">
             <img src="./IMG_8246.png" alt="Axe" class="w-4 h-4 object-contain"> AXE
           </button>
-          <button onclick="filterKit('MACE')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="MACE">
+          <button onclick="filterKit('MACE')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="MACE">
             <img src="./IMG_8236.png" alt="Mace" class="w-4 h-4 object-contain"> MACE
           </button>
-          <button onclick="filterKit('SPEAR')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SPEAR">
+          <button onclick="filterKit('SPEAR')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SPEAR">
             <img src="./IMG_8233.png" alt="Spear" class="w-4 h-4 object-contain"> SPEAR
           </button>
-          <button onclick="filterKit('CRYSTAL')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CRYSTAL">
+          <button onclick="filterKit('CRYSTAL')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CRYSTAL">
             <img src="./IMG_8232.png" alt="Crystal" class="w-4 h-4 object-contain"> CRYSTAL
           </button>
-          <button onclick="filterKit('SHIELD')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SHIELD">
+          <button onclick="filterKit('SHIELD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SHIELD">
             <img src="./IMG_8237.png" alt="Shield" class="w-4 h-4 object-contain"> SHIELD
           </button>
-          <button onclick="filterKit('POT')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="POT">
+          <button onclick="filterKit('POT')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="POT">
             <img src="./IMG_8239.png" alt="Pot" class="w-4 h-4 object-contain"> POT
           </button>
-          <button onclick="filterKit('CART')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CART">
+          <button onclick="filterKit('CART')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="CART">
             <img src="./IMG_8244.png" alt="Cart" class="w-4 h-4 object-contain"> CART
           </button>
-          <button onclick="filterKit('UHC')" class="kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="UHC">
+          <button onclick="filterKit('UHC')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="UHC">
             <img src="./IMG_8238.png" alt="UHC" class="w-4 h-4 object-contain"> UHC
           </button>
         </div>
 
-        <!-- 追加：test 項目 & JA/EN 切り替えボタン & LOADボタンのバランス調整エリア -->
-        <div class="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 lg:border-l border-brand-border lg:pl-3">
-          <!-- test 項目ボタン -->
-          <button onclick="handleTestClick()" class="kit-tab bg-brand-dark hover:bg-brand-border text-brand-accent px-3 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="TEST">
-            <i class="fa-solid fa-flask"></i> test
-          </button>
-
-          <!-- JA / EN 切り替えボタン -->
-          <button id="lang-switch-btn" onclick="toggleLanguage()" class="bg-brand-dark hover:bg-brand-border text-gray-300 px-3 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border">
-            <i class="fa-solid fa-globe text-brand-lightPurple"></i> <span id="lang-label">JA</span>
-          </button>
-
-          <!-- Load Button -->
-          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40">
+        <!-- Load Button & CoolDown Display -->
+        <div class="flex flex-col items-end shrink-0 mb-2">
+          <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4 mb-0.5"></span>
+          <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
             <i class="fa-solid fa-rotate" id="load-icon"></i> <span>LOAD</span>
           </button>
         </div>
-      </div>
-
-      <!-- CoolDown Display -->
-      <div class="flex justify-end -mt-3">
-        <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4"></span>
       </div>
 
       <!-- Search & Filters -->
@@ -587,7 +560,6 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <!-- Profile Header -->
       <div class="skin-showcase-bg rounded-xl p-4 sm:p-5 mb-4 border border-brand-border flex items-center gap-4 sm:gap-6 relative">
         <div class="absolute top-2 left-3 text-[9px] font-orbitron text-brand-lightPurple tracking-widest uppercase opacity-70">
           // PLAYER TIER DETAIL
@@ -815,7 +787,6 @@
       window.addEventListener('hashchange', handleRouting);
 
       checkPersistedLogin();
-      fetchQueueStatus();
     });
 
     let activeKitFilter = 'OVERALL';
@@ -982,6 +953,7 @@
       
       document.getElementById('nav-home').classList.replace('text-brand-lightPurple', 'text-gray-300');
       document.getElementById('nav-tier').classList.replace('text-brand-lightPurple', 'text-gray-300');
+      document.getElementById('nav-test').classList.replace('text-brand-lightPurple', 'text-gray-300');
 
       const targetTab = document.getElementById(`tab-${tabName}`);
       const targetNav = document.getElementById(`nav-${tabName}`);
@@ -1002,6 +974,11 @@
           window.location.hash = '#/home';
         }
       }
+    }
+
+    function handleHeaderTestClick() {
+      switchTab('tier', true);
+      filterKit('TEST');
     }
 
     function handleRouting() {
@@ -1033,27 +1010,18 @@
       
       document.querySelectorAll('.kit-tab').forEach(btn => {
         if (btn.getAttribute('data-kit') === kit) {
-          btn.className = "kit-tab active bg-brand-purple text-white px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
+          btn.className = "kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
         } else {
-          btn.className = "kit-tab bg-brand-dark hover:bg-brand-border text-gray-300 px-3.5 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border";
+          btn.className = "kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border";
         }
       });
 
       renderTable();
     }
 
-    // 🟣 「test」項目が押された時の動作
-    function handleTestClick() {
-      filterKit('TEST');
-      // ここにtest項目選択時の独自の挙動やテストデータの表示処理を記述できます
-      console.log("Test kit filter selected.");
-    }
-
-    // 🟣 JA / EN 言語切り替えボタンの動作
     function toggleLanguage() {
       currentLang = currentLang === 'JA' ? 'EN' : 'JA';
       document.getElementById('lang-label').innerText = currentLang;
-      // 言語に応じたUIやメッセージの切り替え処理をここに拡張できます
       console.log("Language switched to:", currentLang);
     }
 
@@ -1147,7 +1115,7 @@
       let filtered = playersData.filter(p => {
         const nameMatch = p.name.toLowerCase().includes(search) || p.rawId.toLowerCase().includes(search);
         if (activeKitFilter === 'OVERALL') return nameMatch;
-        if (activeKitFilter === 'TEST') return nameMatch; // test項目用のフィルタ
+        if (activeKitFilter === 'TEST') return nameMatch;
         return nameMatch && (p.kits[activeKitFilter] !== undefined && p.kits[activeKitFilter] !== '');
       });
 
@@ -1358,7 +1326,6 @@
         if (welcomeTitle) welcomeTitle.innerText = `COMPETITIVE MINECRAFT PVP TIERS`;
         if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。`;
       }
-      fetchQueueStatus();
     }
 
     function checkPersistedLogin() {
@@ -1399,63 +1366,6 @@
             alert(`あなたに紐づくTierデータが見つかりませんでした。`);
           }
         });
-      }
-    }
-
-    async function fetchQueueStatus() {
-      try {
-        const res = await fetch(`${WORKER_API_BASE}/api/queue/status`);
-        const data = await res.json();
-
-        if (data.success && Array.isArray(data.queue)) {
-          const count = data.queue.length;
-          document.getElementById('queue-count').innerText = `${count} 人`;
-
-          const posEl = document.getElementById('user-queue-position');
-          if (loggedInUserDiscordId) {
-            const index = data.queue.findIndex(q => q.discordId === loggedInUserDiscordId);
-            if (index !== -1) {
-              posEl.innerText = `あなたは現在 ${index + 1} 番目に並んでいます！`;
-              posEl.className = "text-emerald-400 font-bold";
-            } else {
-              posEl.innerText = "あなたは現在キューに並んでいません。";
-              posEl.className = "text-gray-400";
-            }
-          } else {
-            posEl.innerText = "ログインするとあなたの並び順を確認できます";
-            posEl.className = "text-brand-accent";
-          }
-        }
-      } catch (err) {
-        console.error("Queue fetch error:", err);
-        const countEl = document.getElementById('queue-count');
-        if (countEl) countEl.innerText = "取得失敗";
-      }
-    }
-
-    async function toggleQueueAction(actionType) {
-      if (!loggedInUserDiscordId) {
-        alert("キューを操作するにはログインが必要です。");
-        openLoginModal();
-        return;
-      }
-
-      try {
-        const res = await fetch(`${WORKER_API_BASE}/api/queue/toggle`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ discordId: loggedInUserDiscordId, action: actionType })
-        });
-        const result = await res.json();
-        if (result.success) {
-          alert(actionType === 'join' ? "キューに参加しました！" : "キューから退出しました。");
-          fetchQueueStatus();
-        } else {
-          alert(`エラー: ${result.error || "処理に失敗しました"}`);
-        }
-      } catch (err) {
-        console.error("Queue action error:", err);
-        alert("通信エラーが発生しました。");
       }
     }
 
@@ -1508,7 +1418,7 @@
         console.error("Login error:", err);
         if (errorMsg) {
           errorMsg.innerText = "通信エラーが発生しました。";
-          errorMsg.classList.remove('hidden');
+          errorMsg.classList.add('hidden');
         }
       } finally {
         submitBtn.disabled = false;

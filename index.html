@@ -571,9 +571,9 @@
         <div class="relative group mt-2 shrink-0">
           <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-300"></div>
           <div class="relative w-24 h-36 sm:w-28 sm:h-40 bg-brand-dark/90 rounded-xl border border-brand-purple/50 flex items-center justify-center p-2 overflow-hidden">
-            <!-- 3Dスキン表示（Java版・取得成功時のみ表示） -->
+            <!-- 3Dスキン表示（スキンを取得できたとき） -->
             <div id="skin3d" class="hidden w-full h-full"></div>
-            <!-- 2D表示（Bedrock版・3D失敗時のフォールバック） -->
+            <!-- 2D表示（統合版でskin未登録のとき・3D失敗時のフォールバック） -->
             <img id="modal-fullbody" src="" alt="Skin" onerror="handleModalSkinError(this)" class="h-full object-contain object-bottom filter drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
           </div>
         </div>
@@ -587,7 +587,7 @@
         </div>
       </div>
 
-      <!-- ポーズ切り替え（3D表示のときだけ表示） -->
+      <!-- ポーズ切り替え（Java版で3D表示のときだけ表示） -->
       <div id="pose-buttons" class="hidden mb-3">
         <div class="flex gap-1.5">
           <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" onclick="setPose('idle')">待機</button>
@@ -817,7 +817,7 @@
     let cooldownTimer = null;
     let loggedInUser = null;
 
-    const DEFAULT_STEVE_BODY = "https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a973daf31?scale=4&overlay=true";
+    const DEFAULT_STEVE_BODY = "https://mc-heads.net/body/8667ba71b85a4004af54457a973daf31/140";
     const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     function isUuid(str) {
@@ -850,7 +850,7 @@
         if (player && isUuid(player.rawId) && player.name) {
           img.src = `https://minotar.net/body/${encodeURIComponent(player.name.trim())}/140.png`;
         } else if (player && player.name) {
-          img.src = `https://crafatar.com/renders/body/${encodeURIComponent(player.name.trim())}?scale=4&overlay=true`;
+          img.src = `https://mc-heads.net/body/${encodeURIComponent(player.name.trim())}/140`;
         } else {
           img.src = DEFAULT_STEVE_BODY;
         }
@@ -1045,6 +1045,18 @@
       renderTable();
     }
 
+    // skin欄の値を整える。画像URL・data URL・Base64だけの文字列（PNGの先頭 iVBORw0KGgo）に対応
+    // 使えない値のときは空文字を返す（＝skinなし扱い）
+    function normalizeSkinValue(v) {
+      if (v === undefined || v === null) return '';
+      let s = String(v).replace(/\s+/g, '');
+      if (!s) return '';
+      if (/^data:image\/(png|jpe?g|webp);base64,/i.test(s)) return s;
+      if (/^https?:\/\//i.test(s)) return s;
+      if (/^iVBORw0KGgo/.test(s)) return 'data:image/png;base64,' + s;
+      return '';
+    }
+
     async function fetchSpreadsheetData(force = false) {
       if (isDataLoaded && !force) return;
 
@@ -1070,13 +1082,20 @@
 
         playersData = rawData.map(p => {
           let normalizedKits = {};
+          let skinFromKits = '';
           if (p.kits) {
             for (let [k, v] of Object.entries(p.kits)) {
+              // skin列は kits の中に入って届くことがある。キットとして扱わず、大文字にもせずに取り出す
+              if (k.trim().toUpperCase() === 'SKIN') {
+                skinFromKits = v;
+                continue;
+              }
               normalizedKits[k.toUpperCase()] = v ? v.toString().trim().toUpperCase() : '';
             }
           }
 
           const isJavaUuid = isUuid(p.uuid);
+          const skin = normalizeSkinValue(p.skin || p.Skin || p.SKIN || skinFromKits);
 
           return {
             ...p,
@@ -1084,6 +1103,7 @@
             name: p.name,
             isUuid: isJavaUuid,
             country: formatCountry(p.country),
+            skin: skin,
             kits: normalizedKits
           };
         });
@@ -1442,10 +1462,12 @@
     /* ========================================================
        🟣 スキン取得（一覧・モーダル共通）
        ======================================================== */
+    // 上から順に試す取得元（crafatarは障害が出やすいので後ろに回している）
     const SKIN_SOURCES = [
-      { name: "crafatar", url: id => `https://crafatar.com/skins/${id}` },
       { name: "mc-heads", url: id => `https://mc-heads.net/skin/${id}` },
-      { name: "中継", url: id => `https://corsproxy.io/?${encodeURIComponent(`https://crafatar.com/skins/${id}`)}` }
+      { name: "minotar",  url: id => `https://minotar.net/skin/${id}` },
+      { name: "crafatar", url: id => `https://crafatar.com/skins/${id}` },
+      { name: "中継(mc-heads)", url: id => `https://corsproxy.io/?${encodeURIComponent(`https://mc-heads.net/skin/${id}`)}` }
     ];
 
     // 取得に失敗したときの裏での再挑戦：回数と、各回までの待ち時間（ミリ秒）
@@ -1459,16 +1481,47 @@
     // 同じスキンを何度も取りに行かないためのキャッシュ（key → Promise）
     const skinCache = new Map();
 
+    // サーバー側のエラーが続いた取得元をしばらく使わない
+    const sourceHealth = new Map(); // 取得元名 → { fails, offUntil }
+    const SOURCE_FAIL_LIMIT = 3;
+    const SOURCE_OFF_MS = 120000;
+
+    function markSourceFail(name) {
+      const h = sourceHealth.get(name) || { fails: 0, offUntil: 0 };
+      h.fails++;
+      if (h.fails >= SOURCE_FAIL_LIMIT) {
+        h.offUntil = Date.now() + SOURCE_OFF_MS;
+        h.fails = 0;
+      }
+      sourceHealth.set(name, h);
+    }
+
     async function fetchSkinBlob(id) {
+      // 全部が休止中なら、いったん全部使えることにして試す
+      const now = Date.now();
+      if (SKIN_SOURCES.every(s => (sourceHealth.get(s.name) || {}).offUntil > now)) {
+        sourceHealth.clear();
+      }
+
       const errors = [];
       for (const src of SKIN_SOURCES) {
+        const h = sourceHealth.get(src.name);
+        if (h && Date.now() < h.offUntil) { errors.push(`${src.name}:休止中`); continue; }
         try {
           const res = await fetch(src.url(id));
-          if (!res.ok) { errors.push(`${src.name}:${res.status}`); continue; }
+          if (!res.ok) {
+            if (res.status >= 500) markSourceFail(src.name); // 404などは取得元の故障ではない
+            errors.push(`${src.name}:${res.status}`);
+            continue;
+          }
           const blob = await res.blob();
-          if (blob.type.startsWith("image/")) return blob;
+          if (blob.type.startsWith("image/")) {
+            sourceHealth.set(src.name, { fails: 0, offUntil: 0 });
+            return blob;
+          }
           errors.push(`${src.name}:画像ではない`);
         } catch (e) {
+          markSourceFail(src.name);
           errors.push(`${src.name}:通信失敗`);
         }
       }
@@ -1516,9 +1569,16 @@
       return skinCache.get(uuid);
     }
 
-    // 【将来用】スプレッドシートの skin 欄（画像URL または data URL）から読み込む
+    // 長いBase64をそのままキーにしないための短い識別子
+    function customKey(url) {
+      let h = 5381;
+      for (let i = 0; i < url.length; i++) h = ((h << 5) + h + url.charCodeAt(i)) | 0;
+      return "c:" + (h >>> 0).toString(36) + ":" + url.length;
+    }
+
+    // スプレッドシートの skin 欄（画像URL または data URL）から読み込む
     function loadCustomSkin(url) {
-      const key = "c:" + url;
+      const key = customKey(url);
       if (!skinCache.has(key)) {
         const p = (async () => {
           const im = await new Promise((ok, ng) => {
@@ -1579,7 +1639,7 @@
     // そのプレイヤーを識別するキー（登録スキン優先、次にJavaのUUID、統合版で登録なしは null＝スティーブ）
     function getPlayerKey(player) {
       const custom = player && player.skin ? String(player.skin).trim() : "";
-      if (custom) return "c:" + custom;
+      if (custom) return customKey(custom);
       if (player && player.isUuid) return getCleanUuid(player.rawId);
       return null;
     }
@@ -1958,7 +2018,8 @@
     }
 
     // 詳細に3Dモデルを表示する。reset が true のときは向きとポーズを初期状態に戻す
-    function applyModalSkin({ cv, slim }, reqId, reset) {
+    // showButtons が true のときだけポーズボタンを出す（Java版のみ）
+    function applyModalSkin({ cv, slim }, reqId, reset, showButtons) {
       if (reqId !== skinReqId) return; // 別のプレイヤーを開いた後なら何もしない
       const img = document.getElementById("modal-fullbody");
       const box = document.getElementById("skin3d");
@@ -1974,7 +2035,7 @@
 
       img.classList.add("hidden");
       box.classList.remove("hidden");
-      poseBar.classList.remove("hidden");
+      poseBar.classList.toggle("hidden", !showButtons);
       resize3D();
       if (reset) setPose("idle"); // 最初は待機ポーズ
     }
@@ -2003,15 +2064,18 @@
       // 統合版（登録スキンなし）、Three.js未読込、WebGL不可の場合は従来の2D表示（ボタンなし）
       if (!getPlayerKey(player) || typeof THREE === "undefined" || !ensure3D()) return showFallback();
 
+      // ポーズボタンはJava版のときだけ出す（統合版はskinがあって3Dでもボタンなし）
+      const showButtons = !!player.isUuid;
+
       try {
         // 失敗しても、裏の再挑戦が成功した時点で本人のスキンに差し替える（向き・ポーズはそのまま）
-        const res = await loadPlayerSkin(player, r => applyModalSkin(r, reqId, false));
-        applyModalSkin(res, reqId, true);
+        const res = await loadPlayerSkin(player, r => applyModalSkin(r, reqId, false, showButtons));
+        applyModalSkin(res, reqId, true, showButtons);
       } catch (e) {
         if (reqId !== skinReqId) return;
         console.warn("スキン取得失敗。スティーブを表示して再挑戦します:", e);
         try {
-          applyModalSkin(await loadSteve(), reqId, true);
+          applyModalSkin(await loadSteve(), reqId, true, showButtons);
         } catch (e2) {
           showFallback();
         }

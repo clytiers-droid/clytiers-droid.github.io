@@ -1048,10 +1048,11 @@
     }
 
     // skin欄の値を整える。画像URL・data URL・Base64だけの文字列（PNGの先頭 iVBORw0KGgo）に対応
+    // 半角スペース・改行・全角スペースもすべて除去する
     // 使えない値のときは空文字を返す（＝skinなし扱い）
     function normalizeSkinValue(v) {
       if (v === undefined || v === null) return '';
-      let s = String(v).replace(/\s+/g, '');
+      let s = String(v).replace(/[\s\u3000]+/g, '');
       if (!s) return '';
       if (/^data:image\/(png|jpe?g|webp);base64,/i.test(s)) return s;
       if (/^https?:\/\//i.test(s)) return s;
@@ -1646,7 +1647,15 @@
             const i = new Image();
             i.crossOrigin = "anonymous";
             i.onload = () => ok(i);
-            i.onerror = () => ng(new Error(`登録スキン画像読込失敗 (len=${url.length})`));
+            i.onerror = () => {
+              const b64 = url.replace(/^data:image\/[^;]+;base64,/, '');
+              try {
+                atob(b64);
+                ng(new Error(`Base64自体は有効だが画像として不正 (len=${url.length})`));
+              } catch (err) {
+                ng(new Error(`Base64文字列が不正/破損 (len=${url.length}): ${err.message}`));
+              }
+            };
             i.src = url;
           });
           return imageToSkin(im);

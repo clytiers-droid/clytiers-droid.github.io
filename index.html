@@ -584,10 +584,12 @@
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-[10px] sm:text-[11px] font-mono text-gray-300" id="modal-edition-badge">Verified Player</span>
           </div>
+          <!-- skinが登録されているのに表示できないときの理由 -->
+          <div id="modal-skin-note" class="hidden mt-2 text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
         </div>
       </div>
 
-      <!-- ポーズ切り替え（Java版で3D表示のときだけ表示） -->
+      <!-- ポーズ切り替え（3D表示のときだけ表示：Java版は全員、統合版はskinがある人） -->
       <div id="pose-buttons" class="hidden mb-3">
         <div class="flex gap-1.5">
           <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" onclick="setPose('idle')">待機</button>
@@ -1095,7 +1097,15 @@
           }
 
           const isJavaUuid = isUuid(p.uuid);
-          const skin = normalizeSkinValue(p.skin || p.Skin || p.SKIN || skinFromKits);
+          const rawSkin = p.skin || p.Skin || p.SKIN || skinFromKits;
+          const skin = normalizeSkinValue(rawSkin);
+
+          // skin欄に何か入っているのに形式が違うときは、理由を詳細に出すためにメモしておく
+          let skinNote = '';
+          if (rawSkin && !skin) {
+            const str = String(rawSkin);
+            skinNote = `skin欄の形式が違います（長さ${str.length}、先頭「${str.slice(0, 24)}」）`;
+          }
 
           return {
             ...p,
@@ -1104,6 +1114,7 @@
             isUuid: isJavaUuid,
             country: formatCountry(p.country),
             skin: skin,
+            skinNote: skinNote,
             kits: normalizedKits
           };
         });
@@ -1481,6 +1492,9 @@
     // 同じスキンを何度も取りに行かないためのキャッシュ（key → Promise）
     const skinCache = new Map();
 
+    // 直近の失敗理由（key → メッセージ）。詳細に理由を出すために使う
+    const skinErrors = new Map();
+
     // サーバー側のエラーが続いた取得元をしばらく使わない
     const sourceHealth = new Map(); // 取得元名 → { fails, offUntil }
     const SOURCE_FAIL_LIMIT = 3;
@@ -1545,14 +1559,61 @@
       return true;
     }
 
+    // 旧形式(64×32)のスキンを64×64に変換する（左脚・左腕を右側から左右反転してコピー）
+    function convertLegacySkin(cx) {
+      const flipCopy = (sx, sy, dx, dy, w, h) => {
+        const src = cx.getImageData(sx, sy, w, h);
+        const out = cx.createImageData(w, h);
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const si = (y * w + (w - 1 - x)) * 4;
+            const di = (y * w + x) * 4;
+            out.data[di]     = src.data[si];
+            out.data[di + 1] = src.data[si + 1];
+            out.data[di + 2] = src.data[si + 2];
+            out.data[di + 3] = src.data[si + 3];
+          }
+        }
+        cx.putImageData(out, dx, dy);
+      };
+      // 左脚
+      flipCopy(4, 16, 20, 48, 4, 4);
+      flipCopy(8, 16, 24, 48, 4, 4);
+      flipCopy(0, 20, 24, 52, 4, 12);
+      flipCopy(4, 20, 20, 52, 4, 12);
+      flipCopy(8, 20, 16, 52, 4, 12);
+      flipCopy(12, 20, 28, 52, 4, 12);
+      // 左腕
+      flipCopy(44, 16, 36, 48, 4, 4);
+      flipCopy(48, 16, 40, 48, 4, 4);
+      flipCopy(40, 20, 40, 52, 4, 12);
+      flipCopy(44, 20, 36, 52, 4, 12);
+      flipCopy(48, 20, 32, 52, 4, 12);
+      flipCopy(52, 20, 44, 52, 4, 12);
+    }
+
     // 画像を 64×64 のキャンバスにして Slim 判定を付けて返す
+    // 対応する大きさ：64×64 / 128×128などの正方形（64の倍数） / 旧形式の64×32（128×64など）
     function imageToSkin(im) {
-      if (im.height !== 64) throw new Error("旧形式スキン(64×32)は未対応です");
+      const w = im.naturalWidth || im.width;
+      const h = im.naturalHeight || im.height;
+      if (!w || !h) throw new Error("画像の大きさが分かりません");
+
       const cv = document.createElement("canvas");
       cv.width = 64; cv.height = 64;
-      const cx = cv.getContext("2d");
+      const cx = cv.getContext("2d", { willReadFrequently: true });
       cx.imageSmoothingEnabled = false;
-      cx.drawImage(im, 0, 0);
+
+      if (w === h && w % 64 === 0) {
+        // 64×64、128×128、256×256 など → 64×64に縮める
+        cx.drawImage(im, 0, 0, w, h, 0, 0, 64, 64);
+      } else if (w === h * 2 && h % 32 === 0) {
+        // 旧形式 64×32（高解像度は128×64 など）→ 上半分に描いて64×64に変換
+        cx.drawImage(im, 0, 0, w, h, 0, 0, 64, 32);
+        convertLegacySkin(cx);
+      } else {
+        throw new Error(`スキン画像の大きさが非対応です（${w}×${h}）`);
+      }
       return { cv, slim: detectSlim(cx) };
     }
 
@@ -1585,7 +1646,7 @@
             const i = new Image();
             i.crossOrigin = "anonymous";
             i.onload = () => ok(i);
-            i.onerror = () => ng(new Error("登録スキンの読み込みに失敗"));
+            i.onerror = () => ng(new Error("登録スキンの画像を読み込めません（データが壊れているか、途中で切れている可能性）"));
             i.src = url;
           });
           return imageToSkin(im);
@@ -1644,13 +1705,17 @@
       return null;
     }
 
-    // 実際の取得：登録スキン → JavaのUUID の順に試す
+    // 実際の取得：登録スキン → JavaのUUID の順に試す（登録スキンの失敗理由は消さずに残す）
     function fetchPlayerSkin(player) {
       const custom = player && player.skin ? String(player.skin).trim() : "";
       const viaUuid = () => player.isUuid
         ? loadSkinCanvas(getCleanUuid(player.rawId))
         : Promise.reject(new Error("スキンなし"));
-      if (custom) return loadCustomSkin(custom).catch(viaUuid);
+      if (custom) {
+        return loadCustomSkin(custom).catch(customErr =>
+          viaUuid().catch(() => { throw customErr; })
+        );
+      }
       return viaUuid();
     }
 
@@ -1677,11 +1742,15 @@
             .then(res => {
               st.running = false;
               skinRetry.delete(key);
+              skinErrors.delete(key);
               const ls = [...st.listeners];
               st.listeners.clear();
               ls.forEach(f => { try { f(res); } catch (e) { console.warn(e); } });
             })
-            .catch(step);
+            .catch(err => {
+              skinErrors.set(key, err.message);
+              step();
+            });
         }, wait);
       };
       step();
@@ -1696,9 +1765,10 @@
       // すでに再挑戦中、または回数を使い切っている場合は、むやみに通信しない
       if (st && (st.running || st.tries >= SKIN_MAX_RETRY)) {
         if (st.running && onLate) st.listeners.add(onLate);
-        return Promise.reject(new Error("再挑戦中または断念"));
+        return Promise.reject(new Error(skinErrors.get(key) || "再挑戦中"));
       }
       return fetchPlayerSkin(player).catch(err => {
+        skinErrors.set(key, err.message);
         scheduleSkinRetry(player, key, onLate);
         throw err;
       });
@@ -2017,9 +2087,22 @@
       parts3.lLeg = ch.lLeg;
     }
 
+    // 詳細に出す「skinが表示できない理由」の文字
+    function setModalNote(text) {
+      const el = document.getElementById("modal-skin-note");
+      if (!el) return;
+      if (text) {
+        el.textContent = text;
+        el.classList.remove("hidden");
+      } else {
+        el.textContent = "";
+        el.classList.add("hidden");
+      }
+    }
+
     // 詳細に3Dモデルを表示する。reset が true のときは向きとポーズを初期状態に戻す
-    // showButtons が true のときだけポーズボタンを出す（Java版のみ）
-    function applyModalSkin({ cv, slim }, reqId, reset, showButtons) {
+    // ポーズボタンは、3D表示のときは常に出す（Java版は全員、統合版はskinがある人だけがここに来る）
+    function applyModalSkin({ cv, slim }, reqId, reset) {
       if (reqId !== skinReqId) return; // 別のプレイヤーを開いた後なら何もしない
       const img = document.getElementById("modal-fullbody");
       const box = document.getElementById("skin3d");
@@ -2035,7 +2118,7 @@
 
       img.classList.add("hidden");
       box.classList.remove("hidden");
-      poseBar.classList.toggle("hidden", !showButtons);
+      poseBar.classList.remove("hidden");
       resize3D();
       if (reset) setPose("idle"); // 最初は待機ポーズ
     }
@@ -2050,6 +2133,7 @@
       box.classList.add("hidden");
       poseBar.classList.add("hidden");
       img.classList.remove("hidden");
+      setModalNote(player.skinNote || "");
 
       const showFallback = () => {
         if (reqId !== skinReqId) return;
@@ -2064,18 +2148,24 @@
       // 統合版（登録スキンなし）、Three.js未読込、WebGL不可の場合は従来の2D表示（ボタンなし）
       if (!getPlayerKey(player) || typeof THREE === "undefined" || !ensure3D()) return showFallback();
 
-      // ポーズボタンはJava版のときだけ出す（統合版はskinがあって3Dでもボタンなし）
-      const showButtons = !!player.isUuid;
-
       try {
         // 失敗しても、裏の再挑戦が成功した時点で本人のスキンに差し替える（向き・ポーズはそのまま）
-        const res = await loadPlayerSkin(player, r => applyModalSkin(r, reqId, false, showButtons));
-        applyModalSkin(res, reqId, true, showButtons);
+        const res = await loadPlayerSkin(player, r => {
+          if (reqId !== skinReqId) return;
+          setModalNote("");
+          applyModalSkin(r, reqId, false);
+        });
+        setModalNote("");
+        applyModalSkin(res, reqId, true);
       } catch (e) {
         if (reqId !== skinReqId) return;
         console.warn("スキン取得失敗。スティーブを表示して再挑戦します:", e);
+        // skinが登録されているのに読めなかったときは、理由を画面に出す
+        if (player.skin) {
+          setModalNote("登録スキンを読み込めませんでした：" + (e && e.message ? e.message : "不明なエラー"));
+        }
         try {
-          applyModalSkin(await loadSteve(), reqId, true, showButtons);
+          applyModalSkin(await loadSteve(), reqId, true);
         } catch (e2) {
           showFallback();
         }

@@ -713,10 +713,6 @@
       return typeof val === 'function' ? val(...args) : val;
     }
 
-    /* ---------- URLハッシュの読み書き ----------
-       形式：#/home/ja  #/tier/ja  #/tier/プレイヤー名/ja
-       （末尾が ja / en のときだけ言語として扱う。言語なしの古い形 #/tier や #/tier/名前 もそのまま動く）
-       パスは変えないので、GitHub Pagesで404になることはない */
     function parseHashRoute() {
       const raw = window.location.hash.replace(/^#\/?/, '');
       const segs = raw.split('/').filter(Boolean).map(s => {
@@ -737,7 +733,6 @@
       return h + '/' + currentLang;
     }
 
-    // 画面遷移やhashchangeを起こさずに、アドレスバーの言語部分だけ更新する
     function syncHashLang() {
       try {
         const { tab, user } = parseHashRoute();
@@ -931,10 +926,7 @@
       }
       animate();
 
-      // 初期言語の反映（URLの言語 → 保存された言語 → 日本語）
       setLanguage(detectInitialLang(), false);
-
-      // ページ読み込み・ハッシュ変更時のルーター初期化
       handleRouting();
       window.addEventListener('hashchange', handleRouting);
     });
@@ -1025,26 +1017,15 @@
       return map[clean] || countryStr;
     }
 
-    /* 🟣 新しい正確なポイント設計マップ */
     function getTierScoreValue(tierStr) {
       if (!tierStr) return 0;
       const clean = tierStr.toUpperCase().trim();
       const scoreMap = {
-        'HT1': 65,
-        'MT1': 55,
-        'LT1': 45,
-        'HT2': 34,
-        'MT2': 28,
-        'LT2': 22,
-        'HT3': 16,
-        'MT3': 12,
-        'LT3': 8,
-        'HT4': 6,
-        'MT4': 5,
-        'LT4': 4,
-        'HT5': 3,
-        'MT5': 2,
-        'LT5': 1
+        'HT1': 65, 'MT1': 55, 'LT1': 45,
+        'HT2': 34, 'MT2': 28, 'LT2': 22,
+        'HT3': 16, 'MT3': 12, 'LT3': 8,
+        'HT4': 6,  'MT4': 5,  'LT4': 4,
+        'HT5': 3,  'MT5': 2,  'LT5': 1
       };
       return scoreMap[clean] || 0;
     }
@@ -1102,9 +1083,6 @@
       return 'tier-blue';
     }
 
-    /* ========================================================
-       🟣 ルーター＆タブ切り替え機構
-       ======================================================== */
     function switchTab(tabName, updateHash = true) {
       document.getElementById('tab-home').classList.add('hidden');
       document.getElementById('tab-tier').classList.add('hidden');
@@ -1129,7 +1107,6 @@
       }
     }
 
-    // 開いている詳細を、URLを変えずに閉じる（ブラウザの「戻る」用）
     function hideModalSilently() {
       const modal = document.getElementById('player-modal');
       if (modal && !modal.classList.contains('hidden')) {
@@ -1142,7 +1119,6 @@
     function handleRouting() {
       const { tab, user, lang } = parseHashRoute();
 
-      // URLの言語が今の言語と違うときは切り替える（URLは書き換えない）
       if (lang && lang !== currentLang) {
         setLanguage(lang, false);
       }
@@ -1163,7 +1139,6 @@
         hideModalSilently();
       }
 
-      // 言語なしのURL（#/tier など）で来たときは、今の言語を付け足して統一する
       if (!lang) {
         syncHashLang();
       }
@@ -1173,7 +1148,6 @@
       const found = playersData.find(p => p.name.toLowerCase() === username.toLowerCase() || p.rawId.toLowerCase() === username.toLowerCase());
       if (!found) return;
 
-      // すでに同じプレイヤーの詳細を開いているなら開き直さない
       const modal = document.getElementById('player-modal');
       const cur = window.currentModalPlayer;
       if (cur && cur.name === found.name && modal && !modal.classList.contains('hidden')) return;
@@ -1195,9 +1169,6 @@
       renderTable();
     }
 
-    // skin欄の値を整える。画像URL・data URL・Base64だけの文字列（PNGの先頭 iVBORw0KGgo）に対応
-    // 空白・全角スペースの除去、URLセーフBase64の変換、Base64以外の不正文字の除去を行う
-    // 使えない値のときは空文字を返す（＝skinなし扱い）
     function normalizeSkinValue(v) {
       if (v === undefined || v === null) return '';
       let s = String(v).replace(/[\s\u3000]+/g, '');
@@ -1215,7 +1186,6 @@
         return '';
       }
 
-      // URLセーフBase64を標準に変換し、Base64以外の不正文字を除去
       b64 = b64.replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/=]/g, '');
       if (!b64) return '';
 
@@ -1536,7 +1506,6 @@
       });
     }
 
-    // 画素データ d（64×64のRGBA）の指定範囲がすべて透明か／すべて黒か
     function isAreaTransparent(d, x, y, w, h) {
       for (let yy = 0; yy < h; yy++) {
         for (let xx = 0; xx < w; xx++) {
@@ -1555,38 +1524,32 @@
       return true;
     }
 
-    // 細腕(Slim)の判定：細腕のときだけ使われない領域（腕の右端の列）がすべて透明（または黒）なら細腕
     function detectSlimFromData(d) {
       const areas = [[50, 16, 2, 4], [54, 20, 2, 12], [42, 48, 2, 4], [46, 52, 2, 12]];
       return areas.every(a => isAreaTransparent(d, a[0], a[1], a[2], a[3])) ||
              areas.every(a => isAreaBlack(d, a[0], a[1], a[2], a[3]));
     }
 
-    // 直方体（左上u,v・幅w・高さh・奥行d）が使う6面の矩形
     function faceRects(u, v, w, h, dd) {
       return [
-        [u + dd,         v,      w,  dd],  // 上
-        [u + dd + w,     v,      w,  dd],  // 下
-        [u,              v + dd, dd, h ],  // 右
-        [u + dd,         v + dd, w,  h ],  // 前
-        [u + dd + w,     v + dd, dd, h ],  // 左
-        [u + 2 * dd + w, v + dd, w,  h ]   // 後
+        [u + dd,         v,      w,  dd],
+        [u + dd + w,     v,      w,  dd],
+        [u,              v + dd, dd, h ],
+        [u + dd,         v + dd, w,  h ],
+        [u + dd + w,     v + dd, dd, h ],
+        [u + 2 * dd + w, v + dd, w,  h ]
       ];
     }
 
-    // 1レイヤー目（ベース層）の透明な画素を補完する。
-    // Minecraft本体もベース層は不透明として扱う。透明なままだと黒や抜けになってしまうので、
-    // 同じ位置の2レイヤー目（上着・帽子）が不透明ならその色、なければそのパーツの平均色で埋める。
-    // 戻り値：補完した画素の割合（%）
     function fixBaseLayer(d, slim) {
       const aw = slim ? 3 : 4;
       const parts = [
-        { base: [0, 0, 8, 8, 8],        over: [32, 0]  },  // 頭
-        { base: [16, 16, 8, 12, 4],     over: [16, 32] },  // 胴
-        { base: [40, 16, aw, 12, 4],    over: [40, 32] },  // 右腕
-        { base: [32, 48, aw, 12, 4],    over: [48, 48] },  // 左腕
-        { base: [0, 16, 4, 12, 4],      over: [0, 32]  },  // 右脚
-        { base: [16, 48, 4, 12, 4],     over: [0, 48]  }   // 左脚
+        { base: [0, 0, 8, 8, 8],        over: [32, 0]  },
+        { base: [16, 16, 8, 12, 4],     over: [16, 32] },
+        { base: [40, 16, aw, 12, 4],    over: [40, 32] },
+        { base: [32, 48, aw, 12, 4],    over: [48, 48] },
+        { base: [0, 16, 4, 12, 4],      over: [0, 32]  },
+        { base: [16, 48, 4, 12, 4],     over: [0, 48]  }
       ];
       let total = 0, filled = 0;
 
@@ -1595,7 +1558,6 @@
         const dx = p.over[0] - u, dy = p.over[1] - v;
         const rects = faceRects(u, v, w, h, dd);
 
-        // このパーツの平均色（不透明な画素から）
         let r = 0, g = 0, b = 0, n = 0;
         for (const [x, y, rw, rh] of rects) {
           for (let yy = 0; yy < rh; yy++) {
@@ -1632,7 +1594,86 @@
       return total ? Math.round((filled / total) * 1000) / 10 : 0;
     }
 
-    // 旧形式(64×32)のスキンを64×64に変換する（左脚・左腕を右側から左右反転してコピー）
+    // ★ 2レイヤー目（帽子・オーバーレイ層）の「本来透明であるべき白」を掃除する
+    // 2レイヤー目の各パーツ外周（1px枠）に白（RGB >= 245）が多く塗られている場合、
+    // そこが「背景/余白の白塗り」とみなしてフラッドフィルで透明化する。
+    function cleanOverlayWhite(d, slim) {
+      const aw = slim ? 3 : 4;
+      const overlayBoxes = [
+        ...faceRects(32, 0, 8, 8, 8),        // 帽子
+        ...faceRects(16, 32, 8, 12, 4),     // ジャケット
+        ...faceRects(40, 32, aw, 12, 4),    // 右袖
+        ...faceRects(48, 48, aw, 12, 4),    // 左袖
+        ...faceRects(0, 32, 4, 12, 4),      // 右ズボン
+        ...faceRects(0, 48, 4, 12, 4)       // 左ズボン
+      ];
+
+      const isNearWhite = (idx) => {
+        if (d[idx + 3] < 20) return false;
+        return d[idx] >= 245 && d[idx + 1] >= 245 && d[idx + 2] >= 245;
+      };
+
+      const clearPixel = (idx) => {
+        d[idx] = 0;
+        d[idx + 1] = 0;
+        d[idx + 2] = 0;
+        d[idx + 3] = 0;
+      };
+
+      for (const [bx, by, bw, bh] of overlayBoxes) {
+        if (bw < 2 || bh < 2) continue;
+
+        // 外周の白ピクセル数を数える
+        let borderTotal = 0;
+        let borderWhite = 0;
+        const seeds = [];
+
+        for (let y = by; y < by + bh; y++) {
+          for (let x = bx; x < bx + bw; x++) {
+            const isBorder = (x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1);
+            if (!isBorder) continue;
+            borderTotal++;
+            const idx = (y * 64 + x) * 4;
+            if (isNearWhite(idx)) {
+              borderWhite++;
+              seeds.push([x, y]);
+            }
+          }
+        }
+
+        // 外周の60%以上が白なら、この面は白背景/白ベタで覆われている可能性が高い
+        if (borderTotal > 0 && (borderWhite / borderTotal) >= 0.6 && seeds.length > 0) {
+          const visited = new Uint8Array(64 * 64);
+          const queue = [...seeds];
+          for (const [sx, sy] of seeds) {
+            visited[sy * 64 + sx] = 1;
+          }
+
+          while (queue.length > 0) {
+            const [cx, cy] = queue.shift();
+            const cIdx = (cy * 64 + cx) * 4;
+            if (!isNearWhite(cIdx)) continue;
+            clearPixel(cIdx);
+
+            const neighbors = [
+              [cx - 1, cy], [cx + 1, cy],
+              [cx, cy - 1], [cx, cy + 1]
+            ];
+            for (const [nx, ny] of neighbors) {
+              if (nx < bx || nx >= bx + bw || ny < by || ny >= by + bh) continue;
+              const pKey = ny * 64 + nx;
+              if (visited[pKey]) continue;
+              visited[pKey] = 1;
+              const nIdx = pKey * 4;
+              if (isNearWhite(nIdx)) {
+                queue.push([nx, ny]);
+              }
+            }
+          }
+        }
+      }
+    }
+
     function convertLegacySkin(cx) {
       const flipCopy = (sx, sy, dx, dy, w, h) => {
         const src = cx.getImageData(sx, sy, w, h);
@@ -1663,8 +1704,6 @@
       flipCopy(52, 20, 44, 52, 4, 12);
     }
 
-    // 画像を 64×64 のキャンバスにして、細腕判定とベース層の補完を行って返す
-    // 対応する大きさ：64×64 / 128×128などの正方形（64の倍数） / 旧形式の64×32（128×64など）
     function imageToSkin(im) {
       const w = im.naturalWidth || im.width;
       const h = im.naturalHeight || im.height;
@@ -1685,7 +1724,8 @@
       }
 
       const imgData = cx.getImageData(0, 0, 64, 64);
-      const slim = detectSlimFromData(imgData.data);   // 補完する前の状態で判定する
+      const slim = detectSlimFromData(imgData.data);
+      cleanOverlayWhite(imgData.data, slim);
       const baseFixPct = fixBaseLayer(imgData.data, slim);
       cx.putImageData(imgData, 0, 0);
 
@@ -1840,9 +1880,6 @@
       });
     }
 
-    /* ========================================================
-       🟣 一覧用スキン（3Dモデルを斜めから撮影した上半身の画像）
-       ======================================================== */
     const LIST_YAW = 0.5;
     const LIST_PITCH = 0.35;
     const MODAL_PITCH = 0.3;
@@ -1955,9 +1992,6 @@
         });
     }
 
-    /* ========================================================
-       🟣 3Dスキン（モーダル用）
-       ======================================================== */
     const POSES = {
       idle:  { rArm:{x:0,    z:0},  lArm:{x:0,    z:0},  rLeg:{x:0,   z:0}, lLeg:{x:0,  z:0}, body:0 },
       guard: { rArm:{x:-65,  z:8},  lArm:{x:-55,  z:-6}, rLeg:{x:-12, z:0}, lLeg:{x:14, z:0}, body:6 },
@@ -2152,7 +2186,6 @@
       }
     }
 
-    // ベース層を自動補完したときに出す案内（1%未満なら出さない）
     function baseFixNote(res) {
       return res && res.baseFixPct >= 1 ? t('skin_base_filled', res.baseFixPct) : "";
     }

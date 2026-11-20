@@ -584,8 +584,18 @@
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-[10px] sm:text-[11px] font-mono text-gray-300" id="modal-edition-badge">Verified Player</span>
           </div>
-          <!-- skinが登録されているのに表示できないときの理由 -->
-          <div id="modal-skin-note" class="hidden mt-2 text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
+          <!-- skinが登録されているのに表示できないときの理由＆コピーボタン -->
+          <div id="modal-skin-note-wrap" class="hidden mt-2 space-y-1.5">
+            <div id="modal-skin-note" class="text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
+            <div id="modal-skin-copy-actions" class="hidden flex flex-wrap gap-1.5">
+              <button type="button" id="copy-skin-norm-btn" onclick="copyErrorSkinData('normalized')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
+                <i class="fa-regular fa-copy"></i> <span>Base64をコピー</span>
+              </button>
+              <button type="button" id="copy-skin-raw-btn" onclick="copyErrorSkinData('raw')" class="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/50 text-purple-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
+                <i class="fa-regular fa-copy"></i> <span>元データコピー</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1129,6 +1139,7 @@
             isUuid: isJavaUuid,
             country: formatCountry(p.country),
             skin: skin,
+            rawSkin: rawSkin ? String(rawSkin) : '',
             skinNote: skinNote,
             kits: normalizedKits
           };
@@ -2110,16 +2121,66 @@
       parts3.lLeg = ch.lLeg;
     }
 
-    // 詳細に出す「skinが表示できない理由」の文字
-    function setModalNote(text) {
+    // 詳細に出す「skinが表示できない理由」とコピーボタンの表示制御
+    function setModalNote(text, showCopy = false) {
+      const wrap = document.getElementById("modal-skin-note-wrap");
       const el = document.getElementById("modal-skin-note");
-      if (!el) return;
+      const actions = document.getElementById("modal-skin-copy-actions");
+      if (!wrap || !el || !actions) return;
+
       if (text) {
         el.textContent = text;
-        el.classList.remove("hidden");
+        wrap.classList.remove("hidden");
+        actions.classList.toggle("hidden", !showCopy);
       } else {
         el.textContent = "";
-        el.classList.add("hidden");
+        wrap.classList.add("hidden");
+        actions.classList.add("hidden");
+      }
+    }
+
+    // エラー時のskinデータをクリップボードへコピー
+    async function copyErrorSkinData(mode) {
+      const player = window.currentModalPlayer;
+      if (!player) return;
+
+      const text = mode === "raw"
+        ? (player.rawSkin || player.skin || "")
+        : (player.skin || player.rawSkin || "");
+      if (!text) return;
+
+      const btnId = mode === "raw" ? "copy-skin-raw-btn" : "copy-skin-norm-btn";
+      const btn = document.getElementById(btnId);
+      const origHtml = btn ? btn.innerHTML : "";
+
+      const setBtnFeedback = (label) => {
+        if (!btn) return;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>${label}</span>`;
+        setTimeout(() => { btn.innerHTML = origHtml; }, 1600);
+      };
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          setBtnFeedback("コピー完了");
+          return;
+        }
+      } catch (_) {}
+
+      // フォールバック（Clipboard APIが使えない環境向け）
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        setBtnFeedback("コピー完了");
+      } catch (_) {
+        setBtnFeedback("コピー失敗");
+      } finally {
+        ta.remove();
       }
     }
 
@@ -2156,7 +2217,7 @@
       box.classList.add("hidden");
       poseBar.classList.add("hidden");
       img.classList.remove("hidden");
-      setModalNote(player.skinNote || "");
+      setModalNote(player.skinNote || "", Boolean(player.rawSkin || player.skin));
 
       const showFallback = () => {
         if (reqId !== skinReqId) return;
@@ -2175,17 +2236,20 @@
         // 失敗しても、裏の再挑戦が成功した時点で本人のスキンに差し替える（向き・ポーズはそのまま）
         const res = await loadPlayerSkin(player, r => {
           if (reqId !== skinReqId) return;
-          setModalNote("");
+          setModalNote("", false);
           applyModalSkin(r, reqId, false);
         });
-        setModalNote("");
+        setModalNote("", false);
         applyModalSkin(res, reqId, true);
       } catch (e) {
         if (reqId !== skinReqId) return;
         console.warn("スキン取得失敗。スティーブを表示して再挑戦します:", e);
-        // skinが登録されているのに読めなかったときは、理由を画面に出す
-        if (player.skin) {
-          setModalNote("登録スキンを読み込めませんでした：" + (e && e.message ? e.message : "不明なエラー"));
+        // skinが登録されているのに読めなかったときは、理由とコピーボタンを画面に出す
+        if (player.skin || player.rawSkin) {
+          setModalNote(
+            "登録スキンを読み込めませんでした：" + (e && e.message ? e.message : "不明なエラー"),
+            true
+          );
         }
         try {
           applyModalSkin(await loadSteve(), reqId, true);

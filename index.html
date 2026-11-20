@@ -564,7 +564,7 @@
             <div id="modal-skin-note" class="text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
             <div id="modal-skin-copy-actions" class="hidden flex flex-wrap gap-1.5">
               <button type="button" id="copy-skin-norm-btn" onclick="copyErrorSkinData('normalized')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
-                <i class="fa-regular fa-copy"></i> <span data-i18n="copy_base64">Base64をコピー</span>
+                <i class="fa-regular fa-copy"></i> <span data-i18n="copy_code">コードをコピー</span>
               </button>
               <button type="button" id="copy-skin-raw-btn" onclick="copyErrorSkinData('raw')" class="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/50 text-purple-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
                 <i class="fa-regular fa-copy"></i> <span data-i18n="copy_raw">元データコピー</span>
@@ -574,7 +574,7 @@
         </div>
       </div>
 
-      <!-- ポーズ切り替え（3D表示のときだけ表示：Java版は全員、統合版はskinがある人） -->
+      <!-- ポーズ切り替え（3D表示のときだけ表示） -->
       <div id="pose-buttons" class="hidden mb-3">
         <div class="flex gap-1.5">
           <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" data-i18n="pose_idle" onclick="setPose('idle')">待機</button>
@@ -598,11 +598,11 @@
   </footer>
 
   <script>
-    // データ取得用のGAS Webアプリ（書き込み非対応なので、コードに直接書いてOK）
+    // データ取得用のGAS Webアプリ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbp5y1Q6t3UG2XCCLuGlHH4ER-aeAZRZpnyAv7G-RHJrhQ8p0hv63ymzF1ozxBswKY7Q/exec";
 
     /* ========================================================
-       🌐 多言語対応（JA / EN）＆ URLハッシュ（#/tier/ja など）同期
+       🌐 多言語対応（JA / EN）＆ URLハッシュ同期
        ======================================================== */
     const I18N = {
       ja: {
@@ -639,7 +639,7 @@
         modal_header_tag: "// PLAYER TIER DETAIL",
         edition_java: "Java Edition Player (UUID)",
         edition_bedrock: "Bedrock Edition Player",
-        copy_base64: "Base64をコピー",
+        copy_code: "コードをコピー",
         copy_raw: "元データコピー",
         copied: "コピー完了",
         copy_failed: "コピー失敗",
@@ -688,7 +688,7 @@
         modal_header_tag: "// PLAYER TIER DETAIL",
         edition_java: "Java Edition Player (UUID)",
         edition_bedrock: "Bedrock Edition Player",
-        copy_base64: "Copy Base64",
+        copy_code: "Copy Code",
         copy_raw: "Copy Raw",
         copied: "Copied",
         copy_failed: "Failed",
@@ -1169,11 +1169,92 @@
       renderTable();
     }
 
+    /* ========================================================
+       🟣 PCD2 デコード機能（PixelCode 互換）
+       ======================================================== */
+    const PCD_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+
+    function base85ToBytes(text) {
+      const clean = String(text || "").replace(/\s+/g, "");
+      if (!clean || clean.length % 6 !== 0) {
+        throw new Error("PCD2コードの文字数または形式が正しくありません。");
+      }
+      const output = [];
+      for (let offset = 0; offset < clean.length; offset += 6) {
+        const count = Number(clean[offset]);
+        if (!Number.isInteger(count) || count < 1 || count > 4) {
+          throw new Error("PCD2コード内のブロック情報が不正です。");
+        }
+        if (offset + 6 < clean.length && count !== 4) {
+          throw new Error("PCD2コードの途中のブロック長が不正です。");
+        }
+        let value = 0n;
+        for (let i = 1; i <= 5; i++) {
+          const digit = PCD_ALPHABET.indexOf(clean[offset + i]);
+          if (digit < 0) throw new Error("PCD2コードに使用できない文字があります。");
+          value = value * 85n + BigInt(digit);
+        }
+        if (value > 0xffffffffn) throw new Error("PCD2コードの数値が範囲外です。");
+        const block = new Uint8Array(4);
+        for (let i = 3; i >= 0; i--) {
+          block[i] = Number(value & 255n);
+          value >>= 8n;
+        }
+        for (let i = 0; i < count; i++) output.push(block[i]);
+      }
+      return new Uint8Array(output);
+    }
+
+    async function inflatePcdBytes(bytes) {
+      if (!("DecompressionStream" in window)) {
+        throw new Error("このブラウザは解凍機能に対応していません。");
+      }
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    function parsePcdPayload(bytes) {
+      if (bytes.length < 11 || bytes[0] !== 80 || bytes[1] !== 67 || bytes[2] !== 68 || bytes[3] !== 50) {
+        throw new Error("PCD2データ識別子が違います。");
+      }
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const mimeLength = bytes[4];
+      const nameLength = view.getUint16(5, false);
+      const dataLength = view.getUint32(7, false);
+      const expectedLength = 11 + mimeLength + nameLength + dataLength;
+      if (expectedLength !== bytes.length) {
+        throw new Error("PCD2データサイズが一致しません。コードが途中で欠けている可能性があります。");
+      }
+      let position = 11;
+      const decoder = new TextDecoder();
+      const mime = decoder.decode(bytes.slice(position, position + mimeLength)); position += mimeLength;
+      const name = decoder.decode(bytes.slice(position, position + nameLength)); position += nameLength;
+      const data = bytes.slice(position);
+      return { mime: mime || "image/png", name: name || "restored-image.png", data };
+    }
+
+    async function decodePcdToBlob(pcdString) {
+      const trimmed = String(pcdString || "").trim();
+      const body = trimmed.startsWith("PCD2:") ? trimmed.slice(5) : trimmed;
+      const compressed = base85ToBytes(body);
+      const payload = await inflatePcdBytes(compressed);
+      const parsed = parsePcdPayload(payload);
+      return new Blob([parsed.data], { type: parsed.mime });
+    }
+
+    /* ========================================================
+       🟣 skin 値の正規化（PCD2: / URL / Base64 対応）
+       ======================================================== */
     function normalizeSkinValue(v) {
       if (v === undefined || v === null) return '';
-      let s = String(v).replace(/[\s\u3000]+/g, '');
-      if (!s) return '';
+      const rawStr = String(v).trim();
+      if (!rawStr) return '';
 
+      if (/^PCD2:/i.test(rawStr)) {
+        return "PCD2:" + rawStr.slice(5).replace(/\s+/g, '');
+      }
+
+      let s = rawStr.replace(/[\s\u3000]+/g, '');
       if (/^https?:\/\//i.test(s)) return s;
 
       let mime = 'image/png';
@@ -1594,86 +1675,6 @@
       return total ? Math.round((filled / total) * 1000) / 10 : 0;
     }
 
-    // ★ 2レイヤー目（帽子・オーバーレイ層）の「本来透明であるべき白」を掃除する
-    // 2レイヤー目の各パーツ外周（1px枠）に白（RGB >= 245）が多く塗られている場合、
-    // そこが「背景/余白の白塗り」とみなしてフラッドフィルで透明化する。
-    function cleanOverlayWhite(d, slim) {
-      const aw = slim ? 3 : 4;
-      const overlayBoxes = [
-        ...faceRects(32, 0, 8, 8, 8),        // 帽子
-        ...faceRects(16, 32, 8, 12, 4),     // ジャケット
-        ...faceRects(40, 32, aw, 12, 4),    // 右袖
-        ...faceRects(48, 48, aw, 12, 4),    // 左袖
-        ...faceRects(0, 32, 4, 12, 4),      // 右ズボン
-        ...faceRects(0, 48, 4, 12, 4)       // 左ズボン
-      ];
-
-      const isNearWhite = (idx) => {
-        if (d[idx + 3] < 20) return false;
-        return d[idx] >= 245 && d[idx + 1] >= 245 && d[idx + 2] >= 245;
-      };
-
-      const clearPixel = (idx) => {
-        d[idx] = 0;
-        d[idx + 1] = 0;
-        d[idx + 2] = 0;
-        d[idx + 3] = 0;
-      };
-
-      for (const [bx, by, bw, bh] of overlayBoxes) {
-        if (bw < 2 || bh < 2) continue;
-
-        // 外周の白ピクセル数を数える
-        let borderTotal = 0;
-        let borderWhite = 0;
-        const seeds = [];
-
-        for (let y = by; y < by + bh; y++) {
-          for (let x = bx; x < bx + bw; x++) {
-            const isBorder = (x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1);
-            if (!isBorder) continue;
-            borderTotal++;
-            const idx = (y * 64 + x) * 4;
-            if (isNearWhite(idx)) {
-              borderWhite++;
-              seeds.push([x, y]);
-            }
-          }
-        }
-
-        // 外周の60%以上が白なら、この面は白背景/白ベタで覆われている可能性が高い
-        if (borderTotal > 0 && (borderWhite / borderTotal) >= 0.6 && seeds.length > 0) {
-          const visited = new Uint8Array(64 * 64);
-          const queue = [...seeds];
-          for (const [sx, sy] of seeds) {
-            visited[sy * 64 + sx] = 1;
-          }
-
-          while (queue.length > 0) {
-            const [cx, cy] = queue.shift();
-            const cIdx = (cy * 64 + cx) * 4;
-            if (!isNearWhite(cIdx)) continue;
-            clearPixel(cIdx);
-
-            const neighbors = [
-              [cx - 1, cy], [cx + 1, cy],
-              [cx, cy - 1], [cx, cy + 1]
-            ];
-            for (const [nx, ny] of neighbors) {
-              if (nx < bx || nx >= bx + bw || ny < by || ny >= by + bh) continue;
-              const pKey = ny * 64 + nx;
-              if (visited[pKey]) continue;
-              visited[pKey] = 1;
-              const nIdx = pKey * 4;
-              if (isNearWhite(nIdx)) {
-                queue.push([nx, ny]);
-              }
-            }
-          }
-        }
-      }
-    }
-
     function convertLegacySkin(cx) {
       const flipCopy = (sx, sy, dx, dy, w, h) => {
         const src = cx.getImageData(sx, sy, w, h);
@@ -1725,7 +1726,6 @@
 
       const imgData = cx.getImageData(0, 0, 64, 64);
       const slim = detectSlimFromData(imgData.data);
-      cleanOverlayWhite(imgData.data, slim);
       const baseFixPct = fixBaseLayer(imgData.data, slim);
       cx.putImageData(imgData, 0, 0);
 
@@ -1750,24 +1750,29 @@
       return "c:" + (h >>> 0).toString(36) + ":" + url.length;
     }
 
-    function loadCustomSkin(url) {
-      const key = customKey(url);
+    function loadCustomSkin(skinValue) {
+      const key = customKey(skinValue);
       if (!skinCache.has(key)) {
         const p = (async () => {
+          if (/^PCD2:/i.test(skinValue)) {
+            const blob = await decodePcdToBlob(skinValue);
+            return imageToSkin(await blobToImg(blob));
+          }
+
           const im = await new Promise((ok, ng) => {
             const i = new Image();
             i.crossOrigin = "anonymous";
             i.onload = () => ok(i);
             i.onerror = () => {
-              const b64 = url.replace(/^data:image\/[^;]+;base64,/, '');
+              const b64 = skinValue.replace(/^data:image\/[^;]+;base64,/, '');
               try {
                 atob(b64);
-                ng(new Error(`Base64自体は有効だが画像として不正 (len=${url.length})`));
+                ng(new Error(`Base64自体は有効だが画像として不正 (len=${skinValue.length})`));
               } catch (err) {
-                ng(new Error(`Base64文字列が不正/破損 (len=${url.length}): ${err.message}`));
+                ng(new Error(`画像データの読み込みに失敗 (len=${skinValue.length}): ${err.message}`));
               }
             };
-            i.src = url;
+            i.src = skinValue;
           });
           return imageToSkin(im);
         })();

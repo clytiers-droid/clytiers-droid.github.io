@@ -1646,7 +1646,7 @@
             const i = new Image();
             i.crossOrigin = "anonymous";
             i.onload = () => ok(i);
-            i.onerror = () => ng(new Error("登録スキンの画像を読み込めません（データが壊れているか、途中で切れている可能性）"));
+            i.onerror = () => ng(new Error(`登録スキン画像読込失敗 (len=${url.length})`));
             i.src = url;
           });
           return imageToSkin(im);

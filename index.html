@@ -290,8 +290,7 @@
       transition: filter 0.3s ease;
     }
 
-    #player-modal:not(.hidden) > div,
-    #profile-modal:not(.hidden) > div {
+    #player-modal:not(.hidden) > div {
       animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     @keyframes modalPop {
@@ -354,7 +353,7 @@
     }
   </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col justify-between" onclick="closeUserMenuOutside(event)">
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between">
 
   <!-- 🟣 背景の通常ネザー粒子用キャンバス -->
   <canvas id="nether-particles"></canvas>
@@ -366,14 +365,14 @@
     <div class="max-w-7xl mx-auto px-2 sm:px-4 h-16 flex items-center justify-between">
       <nav class="flex items-center justify-between w-full font-orbitron font-bold text-xs sm:text-sm">
         <button onclick="switchTab('home')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-brand-lightPurple" id="nav-home">
-          <i class="fa-solid fa-house text-xs"></i><span>Home</span>
+          <i class="fa-solid fa-house text-xs"></i><span data-i18n="nav_home">Home</span>
         </button>
 
         <button onclick="switchTab('tier')" class="nav-btn transition-colors hover:text-brand-lightPurple px-1 sm:px-3 py-1 flex items-center gap-1 text-gray-300" id="nav-tier">
-          <i class="fa-solid fa-trophy text-xs"></i><span>Tiers</span>
+          <i class="fa-solid fa-trophy text-xs"></i><span data-i18n="nav_tiers">Tiers</span>
         </button>
 
-        <a href="#" onclick="switchTab('home')" class="font-black text-lg sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-4">
+        <a href="#" onclick="event.preventDefault(); switchTab('home')" class="font-black text-lg sm:text-2xl tracking-wider clytiers-gradient-logo px-1 sm:px-4">
           CLYTIERS
         </a>
 
@@ -381,37 +380,14 @@
           <i class="fa-brands fa-discord text-xs text-indigo-400"></i><span>Discord</span>
         </a>
 
-        <!-- Login / User Menu Area -->
-        <div id="auth-nav-container" class="relative">
-          <!-- 未ログイン時 -->
-          <button id="login-open-btn" onclick="openLoginModal()" class="bg-brand-card border border-brand-border px-3 py-1.5 rounded text-xs flex items-center gap-1.5 hover:border-brand-purple text-gray-300 hover:text-brand-lightPurple transition-colors">
-            <i class="fa-solid fa-right-to-bracket text-brand-purple"></i>
-            <span>Login</span>
+        <!-- Language Selector (JA / EN) -->
+        <div class="flex items-center bg-brand-card border border-brand-border rounded-lg p-0.5 shrink-0">
+          <button id="lang-btn-ja" type="button" onclick="setLanguage('ja')" class="px-2 py-1 rounded text-[11px] font-orbitron font-bold bg-brand-purple text-white transition-colors">
+            JA
           </button>
-
-          <!-- ログイン成功時（ドロップダウン用トリガー） -->
-          <div id="user-menu-wrapper" class="hidden relative">
-            <button onclick="toggleUserMenu(event)" class="bg-brand-card border border-brand-purple px-3 py-1.5 rounded text-xs flex items-center gap-2 hover:border-brand-lightPurple text-white transition-colors shadow-[0_0_10px_rgba(139,92,246,0.3)]">
-              <i class="fa-solid fa-ellipsis-vertical text-brand-lightPurple text-sm px-0.5"></i>
-            </button>
-
-            <!-- 最前面に表示するドロップダウンメニュー -->
-            <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-brand-card border border-brand-border rounded-xl shadow-2xl py-1.5 z-[999] font-sans">
-              <button onclick="openProfileModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-user text-brand-purple w-4"></i>
-                <span>プロフィール画面</span>
-              </button>
-              <button onclick="openMyTierModal(); toggleUserMenu();" class="w-full text-left px-4 py-2.5 text-xs text-gray-200 hover:bg-brand-purple/20 hover:text-brand-lightPurple flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-trophy text-amber-400 w-4"></i>
-                <span>my tier</span>
-              </button>
-              <div class="h-px bg-brand-border my-1"></div>
-              <button onclick="handleLogout()" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-2.5 transition-colors">
-                <i class="fa-solid fa-right-from-bracket w-4"></i>
-                <span>ログアウト</span>
-              </button>
-            </div>
-          </div>
+          <button id="lang-btn-en" type="button" onclick="setLanguage('en')" class="px-2 py-1 rounded text-[11px] font-orbitron font-bold text-gray-400 hover:text-white transition-colors">
+            EN
+          </button>
         </div>
       </nav>
     </div>
@@ -424,19 +400,18 @@
     <section id="tab-home" class="space-y-8">
       <div class="glow-box bg-brand-card rounded-2xl p-6 sm:p-10 text-center relative overflow-hidden">
         <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
+        <div data-i18n="hero_badge" class="inline-block px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple font-orbitron text-xs mb-4">
           OFFICIAL COMMUNITY & TIER LIST
         </div>
-        <!-- ログイン時のウェルカムメッセージ対応 -->
-        <h1 id="home-welcome-title" class="text-2xl sm:text-5xl font-black font-orbitron text-white tracking-wide mb-4">
+        <h1 data-i18n="hero_title" class="text-2xl sm:text-5xl font-black font-orbitron text-white tracking-wide mb-4">
           COMPETITIVE MINECRAFT PVP TIERS
         </h1>
-        <p id="home-welcome-desc" class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed">
+        <p data-i18n="hero_desc" class="text-gray-400 max-w-3xl mx-auto text-sm sm:text-base mb-6 leading-relaxed">
           clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。
         </p>
         <a href="https://discord.gg/VVumwrtyDP" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-orbitron px-8 py-3.5 rounded-xl shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
           <i class="fa-brands fa-discord text-xl"></i>
-          <span>DISCORD サーバーに参加</span>
+          <span data-i18n="join_discord">DISCORD サーバーに参加</span>
         </a>
       </div>
 
@@ -447,15 +422,15 @@
               <img src="./IMG_8237.png" alt="Shield" class="w-full h-full object-contain">
             </div>
             <div>
-              <h2 class="text-xl font-bold font-orbitron text-white">SERVER RULES</h2>
-              <p class="text-xs text-gray-400">サーバー利用規約</p>
+              <h2 data-i18n="server_rules_title" class="text-xl font-bold font-orbitron text-white">SERVER RULES</h2>
+              <p data-i18n="server_rules_sub" class="text-xs text-gray-400">サーバー利用規約</p>
             </div>
           </div>
           <ul class="space-y-3 text-sm text-gray-300">
-            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">1.</span><span>他人への侮辱や不快な言動は禁止。相手をリスペクトしましょう。</span></li>
-            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">2.</span><span>荒らし行為は理由を問わず即Ban対象となります。</span></li>
-            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">3.</span><span>Tierテスト中のりキットの使用禁止。マクロやチートも完全禁止です。Testerと受検者はお互いを尊重してください。</span></li>
-            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">4.</span><span>その他、管理者が不適切と判断する行為は禁止。常識を守ってプレイしてください。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">1.</span><span data-i18n="server_rule_1">他人への侮辱や不快な言動は禁止。相手をリスペクトしましょう。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">2.</span><span data-i18n="server_rule_2">荒らし行為は理由を問わず即Ban対象となります。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">3.</span><span data-i18n="server_rule_3">Tierテスト中のりキットの使用禁止。マクロやチートも完全禁止です。Testerと受検者はお互いを尊重してください。</span></li>
+            <li class="flex items-start gap-2"><span class="text-red-400 font-bold">4.</span><span data-i18n="server_rule_4">その他、管理者が不適切と判断する行為は禁止。常識を守ってプレイしてください。</span></li>
           </ul>
         </div>
 
@@ -465,15 +440,15 @@
               <img src="./IMG_8232.png" alt="Crystal" class="w-full h-full object-contain">
             </div>
             <div>
-              <h2 class="text-xl font-bold font-orbitron text-white">TIER TEST RULES</h2>
-              <p class="text-xs text-gray-400">テスト規定</p>
+              <h2 data-i18n="test_rules_title" class="text-xl font-bold font-orbitron text-white">TIER TEST RULES</h2>
+              <p data-i18n="test_rules_sub" class="text-xs text-gray-400">テスト規定</p>
             </div>
           </div>
           <ul class="space-y-3 text-sm text-gray-300">
-            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">1.</span><span>TestはFirst to 4 (FT4)で行います。使用サーバーはDiscord内の test-server チャンネルをご確認ください。</span></li>
-            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">2.</span><span>クールダウンはありませんが、1日に受けられるTestは最大2回までです。</span></li>
-            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">3.</span><span>使用KitはLT3まではVanilla Kitであれば自由です。HT3からはDrain Kitを使用します。</span></li>
-            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">4.</span><span>チート・マクロの使用禁止。キーボード2個使いも禁止です。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">1.</span><span data-i18n="test_rule_1">TestはFirst to 4 (FT4)で行います。使用サーバーはDiscord内の test-server チャンネルをご確認ください。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">2.</span><span data-i18n="test_rule_2">クールダウンはありませんが、1日に受けられるTestは最大2回までです。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">3.</span><span data-i18n="test_rule_3">使用KitはLT3まではVanilla Kitであれば自由です。HT3からはDrain Kitを使用します。</span></li>
+            <li class="flex items-start gap-2"><span class="text-brand-lightPurple font-bold">4.</span><span data-i18n="test_rule_4">チート・マクロの使用禁止。キーボード2個使いも禁止です。</span></li>
           </ul>
         </div>
       </div>
@@ -486,7 +461,7 @@
         <!-- Kit Tabs -->
         <div class="flex overflow-x-auto gap-2 pb-2 scrollbar-none flex-1" id="kit-tabs-container">
           <button onclick="filterKit('OVERALL')" class="kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple" data-kit="OVERALL">
-            <i class="fa-solid fa-trophy"></i> OVERALL
+            <i class="fa-solid fa-trophy"></i> <span data-i18n="kit_overall">OVERALL</span>
           </button>
           <button onclick="filterKit('SWORD')" class="kit-tab bg-brand-card hover:bg-brand-border text-gray-300 px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-border" data-kit="SWORD">
             <img src="./IMG_8234.png" alt="Sword" class="w-4 h-4 object-contain"> SWORD
@@ -521,7 +496,7 @@
         <div class="flex flex-col items-end shrink-0 mb-2">
           <span id="cooldown-text" class="text-[10px] font-mono text-brand-lightPurple h-4 mb-0.5"></span>
           <button id="load-btn" onclick="handleLoadData()" class="bg-brand-purple hover:bg-brand-lightPurple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple shadow-lg shadow-purple-600/40 transition-all hover:scale-105">
-            <i class="fa-solid fa-rotate" id="load-icon"></i> <span>LOAD</span>
+            <i class="fa-solid fa-rotate" id="load-icon"></i> <span data-i18n="load_btn">LOAD</span>
           </button>
         </div>
       </div>
@@ -530,10 +505,10 @@
       <div class="flex flex-wrap items-center justify-between gap-4 bg-brand-card p-4 rounded-xl border border-brand-border">
         <div class="relative flex-1 min-w-[200px]">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-          <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Search MCID..." class="w-full bg-brand-dark border border-brand-border rounded-lg pl-9 pr-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
+          <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Search MCID..." data-i18n-placeholder="search_placeholder" class="w-full bg-brand-dark border border-brand-border rounded-lg pl-9 pr-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
         </div>
         <div class="text-xs text-gray-400 font-mono">
-          <span>※ プレイヤー行をクリックで詳細Tierを表示</span>
+          <span data-i18n="click_row_hint">※ プレイヤー行をクリックで詳細Tierを表示</span>
         </div>
       </div>
 
@@ -542,10 +517,10 @@
         <table class="w-full text-left border-collapse min-w-[650px]">
           <thead>
             <tr class="border-b border-brand-border bg-brand-dark/50 text-[11px] font-orbitron text-gray-400 uppercase">
-              <th class="p-3 text-center w-36">RANK</th>
-              <th class="p-3">PLAYER</th>
-              <th class="p-3 text-center">COUNTRY</th>
-              <th class="p-3 text-right">CONTRIBUTING KITS</th>
+              <th class="p-3 text-center w-36" data-i18n="th_rank">RANK</th>
+              <th class="p-3" data-i18n="th_player">PLAYER</th>
+              <th class="p-3 text-center" data-i18n="th_country">COUNTRY</th>
+              <th class="p-3 text-right" data-i18n="th_kits">CONTRIBUTING KITS</th>
             </tr>
           </thead>
           <tbody id="tier-tbody" class="divide-y divide-brand-border/40 text-xs font-mono">
@@ -565,7 +540,7 @@
 
       <!-- Profile Header -->
       <div class="skin-showcase-bg rounded-xl p-4 sm:p-5 mb-4 border border-brand-border flex items-center gap-4 sm:gap-6 relative">
-        <div class="absolute top-2 left-3 text-[9px] font-orbitron text-brand-lightPurple tracking-widest uppercase opacity-70">
+        <div data-i18n="modal_header_tag" class="absolute top-2 left-3 text-[9px] font-orbitron text-brand-lightPurple tracking-widest uppercase opacity-70">
           // PLAYER TIER DETAIL
         </div>
         <div class="relative group mt-2 shrink-0">
@@ -589,10 +564,10 @@
             <div id="modal-skin-note" class="text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
             <div id="modal-skin-copy-actions" class="hidden flex flex-wrap gap-1.5">
               <button type="button" id="copy-skin-norm-btn" onclick="copyErrorSkinData('normalized')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
-                <i class="fa-regular fa-copy"></i> <span>Base64をコピー</span>
+                <i class="fa-regular fa-copy"></i> <span data-i18n="copy_base64">Base64をコピー</span>
               </button>
               <button type="button" id="copy-skin-raw-btn" onclick="copyErrorSkinData('raw')" class="px-2 py-1 rounded bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/50 text-purple-200 text-[10px] font-mono flex items-center gap-1 transition-colors">
-                <i class="fa-regular fa-copy"></i> <span>元データコピー</span>
+                <i class="fa-regular fa-copy"></i> <span data-i18n="copy_raw">元データコピー</span>
               </button>
             </div>
           </div>
@@ -602,15 +577,15 @@
       <!-- ポーズ切り替え（3D表示のときだけ表示：Java版は全員、統合版はskinがある人） -->
       <div id="pose-buttons" class="hidden mb-3">
         <div class="flex gap-1.5">
-          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" onclick="setPose('idle')">待機</button>
-          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="guard" onclick="setPose('guard')">構え</button>
-          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="walk" onclick="setPose('walk')">歩行</button>
-          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="swing" onclick="setPose('swing')">攻撃</button>
+          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" data-i18n="pose_idle" onclick="setPose('idle')">待機</button>
+          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="guard" data-i18n="pose_guard" onclick="setPose('guard')">構え</button>
+          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="walk" data-i18n="pose_walk" onclick="setPose('walk')">歩行</button>
+          <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="swing" data-i18n="pose_swing" onclick="setPose('swing')">攻撃</button>
         </div>
       </div>
 
       <h4 class="text-xs font-bold font-orbitron text-gray-300 mb-2 uppercase flex items-center gap-2 mt-2">
-        <i class="fa-solid fa-layer-group text-brand-purple"></i> <span>Kit Tier Breakdown & Points</span>
+        <i class="fa-solid fa-layer-group text-brand-purple"></i> <span data-i18n="modal_kits_title">Kit Tier Breakdown & Points</span>
       </h4>
       <div id="modal-kits" class="grid grid-cols-1 gap-2 text-xs max-h-44 overflow-y-auto pr-1">
         <!-- Dynamic -->
@@ -618,69 +593,189 @@
     </div>
   </div>
 
-  <!-- Profile Modal (完全別物) -->
-  <div id="profile-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="handleProfileModalBgClick(event)">
-    <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-md w-full p-6 relative glow-box shadow-2xl">
-      <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <div class="text-center mb-4">
-        <div class="inline-block p-3 rounded-xl bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple mb-2">
-          <i class="fa-solid fa-user-gear text-xl"></i>
-        </div>
-        <h3 class="text-lg font-bold font-orbitron text-white">PLAYER PROFILE</h3>
-        <p class="text-xs text-gray-400 mt-1">アカウント設定 & プロフィール</p>
-      </div>
-      <div class="space-y-4 text-xs font-mono">
-        <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
-          <span class="text-gray-400 block mb-1">Logged in as:</span>
-          <span id="profile-username" class="text-white font-bold text-sm"></span>
-        </div>
-        <div class="bg-brand-dark p-3 rounded-lg border border-brand-border">
-          <span class="text-gray-400 block mb-1">Status:</span>
-          <span class="text-emerald-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> 認証済みアカウント (Active Session)
-          </span>
-        </div>
-        <button onclick="closeProfileModal()" class="w-full bg-brand-purple hover:bg-brand-lightPurple text-white py-2.5 rounded-lg font-orbitron text-xs font-bold transition-all">閉じる</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="login-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4" onclick="handleLoginModalBgClick(event)">
-    <div class="bg-brand-card border-2 border-brand-purple/60 rounded-2xl max-w-sm w-full p-6 relative glow-box shadow-2xl">
-      <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl z-20 w-8 h-8 rounded-full bg-brand-dark/80 flex items-center justify-center border border-brand-border">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <div class="text-center mb-4">
-        <div class="inline-block p-3 rounded-xl bg-brand-purple/20 border border-brand-purple/40 text-brand-lightPurple mb-2">
-          <i class="fa-solid fa-user-lock text-xl"></i>
-        </div>
-        <h3 class="text-lg font-bold font-orbitron text-white">PLAYER LOGIN</h3>
-        <p class="text-xs text-gray-400 mt-1">プレイヤーログイン</p>
-      </div>
-      <div class="space-y-3">
-        <div>
-          <label class="block text-[11px] font-mono text-gray-400 mb-1">MCID / UUID</label>
-          <input type="text" id="login-mcid-input" placeholder="Enter your MCID..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
-        </div>
-        <div>
-          <label class="block text-[11px] font-mono text-gray-400 mb-1">Password</label>
-          <input type="password" id="login-password-input" placeholder="Enter password..." class="w-full bg-brand-dark border border-brand-border rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-brand-purple">
-        </div>
-        <!-- エラーメッセージ表示用 -->
-        <div id="login-error-msg" class="text-[11px] text-red-400 text-center hidden"></div>
-        <button id="login-submit-btn" onclick="handleLoginSubmit()" class="w-full bg-brand-purple hover:bg-brand-lightPurple text-white py-2.5 rounded-lg font-orbitron text-xs font-bold transition-all mt-2">ログイン</button>
-      </div>
-    </div>
-  </div>
-
   <footer class="border-t border-brand-border/40 bg-brand-dark py-4 text-center text-xs text-gray-500 font-mono">
-    &copy; 2026 clytiers. All rights reserved. Not affiliated with Mojang AB.
+    &copy; 2026 clytiers. <span data-i18n="footer_rights">All rights reserved. Not affiliated with Mojang AB.</span>
   </footer>
 
   <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbp5y1Q6t3UG2XCCLuGlHH4ER-aeAZRZpnyAv7G-RHJrhQ8p0hv63ymzF1ozxBswKY7Q/exec";
+
+    /* ========================================================
+       🌐 多言語対応（JA / EN）＆ URLパス（/ja, /en）同期
+       ======================================================== */
+    const I18N = {
+      ja: {
+        nav_home: "Home",
+        nav_tiers: "Tiers",
+        hero_badge: "OFFICIAL COMMUNITY & TIER LIST",
+        hero_title: "COMPETITIVE MINECRAFT PVP TIERS",
+        hero_desc: "clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。",
+        join_discord: "DISCORD サーバーに参加",
+        server_rules_title: "SERVER RULES",
+        server_rules_sub: "サーバー利用規約",
+        server_rule_1: "他人への侮辱や不快な言動は禁止。相手をリスペクトしましょう。",
+        server_rule_2: "荒らし行為は理由を問わず即Ban対象となります。",
+        server_rule_3: "Tierテスト中のりキットの使用禁止。マクロやチートも完全禁止です。Testerと受検者はお互いを尊重してください。",
+        server_rule_4: "その他、管理者が不適切と判断する行為は禁止。常識を守ってプレイしてください。",
+        test_rules_title: "TIER TEST RULES",
+        test_rules_sub: "テスト規定",
+        test_rule_1: "TestはFirst to 4 (FT4)で行います。使用サーバーはDiscord内の test-server チャンネルをご確認ください。",
+        test_rule_2: "クールダウンはありませんが、1日に受けられるTestは最大2回までです。",
+        test_rule_3: "使用KitはLT3まではVanilla Kitであれば自由です。HT3からはDrain Kitを使用します。",
+        test_rule_4: "チート・マクロの使用禁止。キーボード2個使いも禁止です。",
+        kit_overall: "OVERALL",
+        load_btn: "LOAD",
+        search_placeholder: "Search MCID...",
+        click_row_hint: "※ プレイヤー行をクリックで詳細Tierを表示",
+        th_rank: "RANK",
+        th_player: "PLAYER",
+        th_country: "COUNTRY",
+        th_kits: "CONTRIBUTING KITS",
+        loading_data: "Loading data...",
+        fetch_error: "データの取得に失敗しました。",
+        no_players: "プレイヤーが見つかりません。",
+        bedrock_tag: "[Bedrock]",
+        modal_header_tag: "// PLAYER TIER DETAIL",
+        edition_java: "Java Edition Player (UUID)",
+        edition_bedrock: "Bedrock Edition Player",
+        copy_base64: "Base64をコピー",
+        copy_raw: "元データコピー",
+        copied: "コピー完了",
+        copy_failed: "コピー失敗",
+        pose_idle: "待機",
+        pose_guard: "構え",
+        pose_walk: "歩行",
+        pose_swing: "攻撃",
+        modal_kits_title: "Kit Tier Breakdown & Points",
+        skin_load_failed: "登録スキンを読み込めませんでした：",
+        skin_unknown_error: "不明なエラー",
+        skin_format_error: (len, head) => `skin欄の形式が違います（長さ${len}、先頭「${head}」）`,
+        footer_rights: "All rights reserved. Not affiliated with Mojang AB."
+      },
+      en: {
+        nav_home: "Home",
+        nav_tiers: "Tiers",
+        hero_badge: "OFFICIAL COMMUNITY & TIER LIST",
+        hero_title: "COMPETITIVE MINECRAFT PVP TIERS",
+        hero_desc: "Welcome to clytiers! Take tier tests on our official Discord server and climb the rankings.",
+        join_discord: "JOIN DISCORD SERVER",
+        server_rules_title: "SERVER RULES",
+        server_rules_sub: "Server Guidelines",
+        server_rule_1: "Insults or offensive behavior toward others are prohibited. Respect your opponents.",
+        server_rule_2: "Griefing or disrupting the server results in an immediate ban regardless of reason.",
+        server_rule_3: "Using illegal/unapproved kits during tier tests is forbidden. Macros and cheats are strictly banned. Testers and players must respect each other.",
+        server_rule_4: "Any other behavior deemed inappropriate by staff is prohibited. Play with common sense.",
+        test_rules_title: "TIER TEST RULES",
+        test_rules_sub: "Test Regulations",
+        test_rule_1: "Tests are played First to 4 (FT4). Check the test-server channel in Discord for the server to use.",
+        test_rule_2: "There is no cooldown, but you can take up to 2 tests per day.",
+        test_rule_3: "Up to LT3, any Vanilla Kit is allowed. From HT3 onward, Drain Kit is used.",
+        test_rule_4: "Cheats and macros are banned. Using two keyboards at once is also prohibited.",
+        kit_overall: "OVERALL",
+        load_btn: "LOAD",
+        search_placeholder: "Search MCID...",
+        click_row_hint: "* Click a player row to view detailed tiers",
+        th_rank: "RANK",
+        th_player: "PLAYER",
+        th_country: "COUNTRY",
+        th_kits: "CONTRIBUTING KITS",
+        loading_data: "Loading data...",
+        fetch_error: "Failed to load data.",
+        no_players: "No players found.",
+        bedrock_tag: "[Bedrock]",
+        modal_header_tag: "// PLAYER TIER DETAIL",
+        edition_java: "Java Edition Player (UUID)",
+        edition_bedrock: "Bedrock Edition Player",
+        copy_base64: "Copy Base64",
+        copy_raw: "Copy Raw",
+        copied: "Copied",
+        copy_failed: "Failed",
+        pose_idle: "Idle",
+        pose_guard: "Guard",
+        pose_walk: "Walk",
+        pose_swing: "Attack",
+        modal_kits_title: "Kit Tier Breakdown & Points",
+        skin_load_failed: "Failed to load custom skin: ",
+        skin_unknown_error: "Unknown error",
+        skin_format_error: (len, head) => `Invalid skin format (len=${len}, starts with "${head}")`,
+        footer_rights: "All rights reserved. Not affiliated with Mojang AB."
+      }
+    };
+
+    let currentLang = 'ja';
+
+    function t(key, ...args) {
+      const dict = I18N[currentLang] || I18N.ja;
+      const val = dict[key] !== undefined ? dict[key] : I18N.ja[key];
+      return typeof val === 'function' ? val(...args) : val;
+    }
+
+    function detectLangFromPath() {
+      const cleanPath = window.location.pathname.replace(/\/+$/, '');
+      if (cleanPath.endsWith('/en')) return 'en';
+      if (cleanPath.endsWith('/ja')) return 'ja';
+      const saved = localStorage.getItem('clytiers_lang');
+      return saved === 'en' ? 'en' : 'ja';
+    }
+
+    function updateUrlLangSuffix(lang) {
+      try {
+        const url = new URL(window.location.href);
+        let pathname = url.pathname;
+        // 末尾の /ja または /en（末尾スラッシュありなし両対応）を置換または付与
+        if (/\/(ja|en)\/?$/i.test(pathname)) {
+          pathname = pathname.replace(/\/(ja|en)\/?$/i, `/${lang}`);
+        } else {
+          pathname = pathname.replace(/\/?$/, `/${lang}`);
+        }
+        window.history.replaceState(null, '', pathname + url.search + url.hash);
+      } catch (_) {}
+    }
+
+    function applyTranslations() {
+      document.documentElement.lang = currentLang;
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const text = t(key);
+        if (typeof text === 'string') el.textContent = text;
+      });
+
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        const text = t(key);
+        if (typeof text === 'string') el.placeholder = text;
+      });
+
+      const jaBtn = document.getElementById('lang-btn-ja');
+      const enBtn = document.getElementById('lang-btn-en');
+      if (jaBtn && enBtn) {
+        if (currentLang === 'ja') {
+          jaBtn.className = "px-2 py-1 rounded text-[11px] font-orbitron font-bold bg-brand-purple text-white transition-colors";
+          enBtn.className = "px-2 py-1 rounded text-[11px] font-orbitron font-bold text-gray-400 hover:text-white transition-colors";
+        } else {
+          enBtn.className = "px-2 py-1 rounded text-[11px] font-orbitron font-bold bg-brand-purple text-white transition-colors";
+          jaBtn.className = "px-2 py-1 rounded text-[11px] font-orbitron font-bold text-gray-400 hover:text-white transition-colors";
+        }
+      }
+
+      if (isDataLoaded) {
+        renderTable();
+      }
+      if (window.currentModalPlayer) {
+        openModal(window.currentModalPlayer, false);
+      }
+    }
+
+    function setLanguage(lang, syncUrl = true) {
+      currentLang = lang === 'en' ? 'en' : 'ja';
+      localStorage.setItem('clytiers_lang', currentLang);
+      if (syncUrl) {
+        updateUrlLangSuffix(currentLang);
+      }
+      applyTranslations();
+    }
+
     /* ========================================================
        🟣 クリック時：サクッと消える波紋 ＆ 最前面で約0.7秒で消える飛び散り粒子
        ======================================================== */
@@ -816,18 +911,19 @@
       }
       animate();
 
+      // 初期言語とURLの反映
+      const initialLang = detectLangFromPath();
+      setLanguage(initialLang, false);
+
       // ページ読み込み・ハッシュ変更時のルーター初期化
       handleRouting();
       window.addEventListener('hashchange', handleRouting);
-
-      checkPersistedLogin();
     });
 
     let activeKitFilter = 'OVERALL';
     let playersData = [];
     let isDataLoaded = false;
     let cooldownTimer = null;
-    let loggedInUser = null;
 
     const DEFAULT_STEVE_BODY = "https://mc-heads.net/body/8667ba71b85a4004af54457a973daf31/140";
     const TRANSPARENT_GIF = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -1099,10 +1195,11 @@
         container.classList.add('scan-effect');
       }
 
-      tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading data...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${t('loading_data')}</td></tr>`;
 
       try {
-        const webAppUrl = "https://system.clytiers.workers.dev/?t=" + new Date().getTime();
+        const sep = GAS_WEB_APP_URL.includes("?") ? "&" : "?";
+        const webAppUrl = `${GAS_WEB_APP_URL}${sep}t=` + new Date().getTime();
         
         const response = await fetch(webAppUrl);
         const rawData = await response.json();
@@ -1112,7 +1209,6 @@
           let skinFromKits = '';
           if (p.kits) {
             for (let [k, v] of Object.entries(p.kits)) {
-              // skin列は kits の中に入って届くことがある。キットとして扱わず、大文字にもせずに取り出す
               if (k.trim().toUpperCase() === 'SKIN') {
                 skinFromKits = v;
                 continue;
@@ -1125,11 +1221,10 @@
           const rawSkin = p.skin || p.Skin || p.SKIN || skinFromKits;
           const skin = normalizeSkinValue(rawSkin);
 
-          // skin欄に何か入っているのに形式が違うときは、理由を詳細に出すためにメモしておく
           let skinNote = '';
           if (rawSkin && !skin) {
             const str = String(rawSkin);
-            skinNote = `skin欄の形式が違います（長さ${str.length}、先頭「${str.slice(0, 24)}」）`;
+            skinNote = t('skin_format_error', str.length, str.slice(0, 24));
           }
 
           return {
@@ -1149,7 +1244,7 @@
         renderTable();
       } catch (error) {
         console.error("Failed to load spreadsheet data:", error);
-        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-red-400">データの取得に失敗しました。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-red-400">${t('fetch_error')}</td></tr>`;
       } finally {
         if (loadIcon) loadIcon.classList.remove('fa-spin');
       }
@@ -1206,7 +1301,7 @@
       }
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400">プレイヤーが見つかりません。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-400">${t('no_players')}</td></tr>`;
         return;
       }
 
@@ -1251,7 +1346,7 @@
         }
 
         const originalIndex = playersData.findIndex(item => item.name === p.name && item.rawId === p.rawId);
-        const editionTag = p.isUuid ? '' : '<span class="text-[9px] text-sky-400 ml-1 font-mono">[Bedrock]</span>';
+        const editionTag = p.isUuid ? '' : `<span class="text-[9px] text-sky-400 ml-1 font-mono">${t('bedrock_tag')}</span>`;
 
         tr.innerHTML = `
           <td class="py-3 px-4 text-center">
@@ -1284,7 +1379,7 @@
       }
 
       document.getElementById('modal-name').innerText = player.name;
-      document.getElementById('modal-edition-badge').innerText = player.isUuid ? 'Java Edition Player (UUID)' : 'Bedrock Edition Player';
+      document.getElementById('modal-edition-badge').innerText = player.isUuid ? t('edition_java') : t('edition_bedrock');
       
       const totalScore = calculatePlayerOverallScore(player);
       document.getElementById('modal-total-score').innerText = `Total Score: ${totalScore} pts`;
@@ -1325,181 +1420,9 @@
       }
     }
 
-    function openLoginModal() {
-      document.getElementById('login-modal').classList.remove('hidden');
-      const errorMsg = document.getElementById('login-error-msg');
-      if (errorMsg) {
-        errorMsg.classList.add('hidden');
-        errorMsg.innerText = '';
-      }
-    }
-
-    function closeLoginModal() {
-      document.getElementById('login-modal').classList.add('hidden');
-    }
-
-    function handleLoginModalBgClick(event) {
-      if (event.target.id === 'login-modal') {
-        closeLoginModal();
-      }
-    }
-
-    /* ========================================================
-       🟣 プロフィール画面
-       ======================================================== */
-    function openProfileModal() {
-      if (!loggedInUser) return;
-      document.getElementById('profile-username').innerText = loggedInUser;
-      document.getElementById('profile-modal').classList.remove('hidden');
-    }
-
-    function closeProfileModal() {
-      document.getElementById('profile-modal').classList.add('hidden');
-    }
-
-    function handleProfileModalBgClick(event) {
-      if (event.target.id === 'profile-modal') {
-        closeProfileModal();
-      }
-    }
-
-    /* ========================================================
-       🟣 ログインメニュー・認証関連ロジック
-       ======================================================== */
-    function toggleUserMenu(event) {
-      if (event) event.stopPropagation();
-      const menu = document.getElementById('user-dropdown-menu');
-      if (menu) {
-        menu.classList.toggle('hidden');
-      }
-    }
-
-    function closeUserMenuOutside(event) {
-      const wrapper = document.getElementById('user-menu-wrapper');
-      const menu = document.getElementById('user-dropdown-menu');
-      if (wrapper && menu && !wrapper.contains(event.target)) {
-        menu.classList.add('hidden');
-      }
-    }
-
-    function updateHeaderLoginState(username) {
-      loggedInUser = username;
-      const loginBtn = document.getElementById('login-open-btn');
-      const userWrapper = document.getElementById('user-menu-wrapper');
-      
-      const welcomeTitle = document.getElementById('home-welcome-title');
-      const welcomeDesc = document.getElementById('home-welcome-desc');
-
-      if (username) {
-        if (loginBtn) loginBtn.classList.add('hidden');
-        if (userWrapper) userWrapper.classList.remove('hidden');
-
-        if (welcomeTitle) welcomeTitle.innerText = `おかえりなさい、${username}さん`;
-        if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！今日もランキング上位を目指してベストを尽くしましょう。`;
-      } else {
-        if (loginBtn) loginBtn.classList.remove('hidden');
-        if (userWrapper) userWrapper.classList.add('hidden');
-
-        if (welcomeTitle) welcomeTitle.innerText = `COMPETITIVE MINECRAFT PVP TIERS`;
-        if (welcomeDesc) welcomeDesc.innerText = `clytiersへようこそ！公式DiscordサーバーでTierテストを受け、ランキングに挑戦しましょう。`;
-      }
-    }
-
-    function checkPersistedLogin() {
-      const savedUser = localStorage.getItem('clytiers_logged_in_user');
-      if (savedUser) {
-        updateHeaderLoginState(savedUser);
-      }
-    }
-
-    function handleLogout() {
-      localStorage.removeItem('clytiers_logged_in_user');
-      updateHeaderLoginState(null);
-      const menu = document.getElementById('user-dropdown-menu');
-      if (menu) menu.classList.add('hidden');
-      window.location.hash = '#/home';
-      alert('ログアウトしました。');
-    }
-
-    function openMyTierModal() {
-      if (!loggedInUser) return;
-      const found = playersData.find(p => p.name.toLowerCase() === loggedInUser.toLowerCase() || p.rawId.toLowerCase() === loggedInUser.toLowerCase());
-      if (found) {
-        openModal(found, true);
-      } else {
-        fetchSpreadsheetData().then(() => {
-          const foundAfterLoad = playersData.find(p => p.name.toLowerCase() === loggedInUser.toLowerCase() || p.rawId.toLowerCase() === loggedInUser.toLowerCase());
-          if (foundAfterLoad) {
-            openModal(foundAfterLoad, true);
-          } else {
-            alert(`ユーザー「${loggedInUser}」のTierデータが見つかりませんでした。`);
-          }
-        });
-      }
-    }
-
-    async function handleLoginSubmit() {
-      const mcidInput = document.getElementById('login-mcid-input').value.trim();
-      const passwordInput = document.getElementById('login-password-input').value;
-      const errorMsg = document.getElementById('login-error-msg');
-      const submitBtn = document.getElementById('login-submit-btn');
-      
-      if (!mcidInput || !passwordInput) {
-        if (errorMsg) {
-          errorMsg.innerText = "MCIDとパスワードを入力してください。";
-          errorMsg.classList.remove('hidden');
-        }
-        return;
-      }
-
-      try {
-        if (errorMsg) errorMsg.classList.add('hidden');
-        
-        submitBtn.disabled = true;
-        submitBtn.innerText = "ログイン中...";
-        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-
-        const msgBuffer = new TextEncoder().encode(passwordInput);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        const baseUrl = "https://system.clytiers.workers.dev";
-        const url = `${baseUrl}?action=login&mcid=${encodeURIComponent(mcidInput)}&passwordHash=${passwordHash}`;
-        
-        const response = await fetch(url);
-        const result = await response.json();
-
-        if (result.success) {
-          localStorage.setItem('clytiers_logged_in_user', result.name);
-          updateHeaderLoginState(result.name);
-
-          closeLoginModal();
-          document.getElementById('login-mcid-input').value = '';
-          document.getElementById('login-password-input').value = '';
-        } else {
-          if (errorMsg) {
-            errorMsg.innerText = result.message || "MCIDまたはパスワードが違います。";
-            errorMsg.classList.remove('hidden');
-          }
-        }
-      } catch (err) {
-        console.error("Login error:", err);
-        if (errorMsg) {
-          errorMsg.innerText = "通信エラーが発生しました。";
-          errorMsg.classList.remove('hidden');
-        }
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "ログイン";
-        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-      }
-    }
-
     /* ========================================================
        🟣 スキン取得（一覧・モーダル共通）
        ======================================================== */
-    // 上から順に試す取得元（crafatarは障害が出やすいので後ろに回している）
     const SKIN_SOURCES = [
       { name: "mc-heads", url: id => `https://mc-heads.net/skin/${id}` },
       { name: "minotar",  url: id => `https://minotar.net/skin/${id}` },
@@ -1507,22 +1430,16 @@
       { name: "中継(mc-heads)", url: id => `https://corsproxy.io/?${encodeURIComponent(`https://mc-heads.net/skin/${id}`)}` }
     ];
 
-    // 取得に失敗したときの裏での再挑戦：回数と、各回までの待ち時間（ミリ秒）
     const SKIN_MAX_RETRY = 3;
     const SKIN_RETRY_DELAYS = [3000, 8000, 15000];
 
-    // スティーブ（初期スキン）のUUID
     const STEVE_UUID = "8667ba71b85a4004af54457a973daf31";
     const STEVE_KEY = "__steve__";
 
-    // 同じスキンを何度も取りに行かないためのキャッシュ（key → Promise）
     const skinCache = new Map();
-
-    // 直近の失敗理由（key → メッセージ）。詳細に理由を出すために使う
     const skinErrors = new Map();
 
-    // サーバー側のエラーが続いた取得元をしばらく使わない
-    const sourceHealth = new Map(); // 取得元名 → { fails, offUntil }
+    const sourceHealth = new Map();
     const SOURCE_FAIL_LIMIT = 3;
     const SOURCE_OFF_MS = 120000;
 
@@ -1537,7 +1454,6 @@
     }
 
     async function fetchSkinBlob(id) {
-      // 全部が休止中なら、いったん全部使えることにして試す
       const now = Date.now();
       if (SKIN_SOURCES.every(s => (sourceHealth.get(s.name) || {}).offUntil > now)) {
         sourceHealth.clear();
@@ -1550,7 +1466,7 @@
         try {
           const res = await fetch(src.url(id));
           if (!res.ok) {
-            if (res.status >= 500) markSourceFail(src.name); // 404などは取得元の故障ではない
+            if (res.status >= 500) markSourceFail(src.name);
             errors.push(`${src.name}:${res.status}`);
             continue;
           }
@@ -1578,14 +1494,12 @@
       });
     }
 
-    // 右腕の外側1列（x=47）が透明ならSlim（細腕）
     function detectSlim(cx) {
       const d = cx.getImageData(47, 20, 1, 12).data;
       for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false;
       return true;
     }
 
-    // 旧形式(64×32)のスキンを64×64に変換する（左脚・左腕を右側から左右反転してコピー）
     function convertLegacySkin(cx) {
       const flipCopy = (sx, sy, dx, dy, w, h) => {
         const src = cx.getImageData(sx, sy, w, h);
@@ -1602,14 +1516,12 @@
         }
         cx.putImageData(out, dx, dy);
       };
-      // 左脚
       flipCopy(4, 16, 20, 48, 4, 4);
       flipCopy(8, 16, 24, 48, 4, 4);
       flipCopy(0, 20, 24, 52, 4, 12);
       flipCopy(4, 20, 20, 52, 4, 12);
       flipCopy(8, 20, 16, 52, 4, 12);
       flipCopy(12, 20, 28, 52, 4, 12);
-      // 左腕
       flipCopy(44, 16, 36, 48, 4, 4);
       flipCopy(48, 16, 40, 48, 4, 4);
       flipCopy(40, 20, 40, 52, 4, 12);
@@ -1618,8 +1530,6 @@
       flipCopy(52, 20, 44, 52, 4, 12);
     }
 
-    // 画像を 64×64 のキャンバスにして Slim 判定を付けて返す
-    // 対応する大きさ：64×64 / 128×128などの正方形（64の倍数） / 旧形式の64×32（128×64など）
     function imageToSkin(im) {
       const w = im.naturalWidth || im.width;
       const h = im.naturalHeight || im.height;
@@ -1631,10 +1541,8 @@
       cx.imageSmoothingEnabled = false;
 
       if (w === h && w % 64 === 0) {
-        // 64×64、128×128、256×256 など → 64×64に縮める
         cx.drawImage(im, 0, 0, w, h, 0, 0, 64, 64);
       } else if (w === h * 2 && h % 32 === 0) {
-        // 旧形式 64×32（高解像度は128×64 など）→ 上半分に描いて64×64に変換
         cx.drawImage(im, 0, 0, w, h, 0, 0, 64, 32);
         convertLegacySkin(cx);
       } else {
@@ -1643,7 +1551,6 @@
       return { cv, slim: detectSlim(cx) };
     }
 
-    // uuid から 64×64 のスキンキャンバスと Slim 判定を得る（キャッシュあり）
     function loadSkinCanvas(uuid) {
       if (!skinCache.has(uuid)) {
         const p = (async () => {
@@ -1656,14 +1563,12 @@
       return skinCache.get(uuid);
     }
 
-    // 長いBase64をそのままキーにしないための短い識別子
     function customKey(url) {
       let h = 5381;
       for (let i = 0; i < url.length; i++) h = ((h << 5) + h + url.charCodeAt(i)) | 0;
       return "c:" + (h >>> 0).toString(36) + ":" + url.length;
     }
 
-    // スプレッドシートの skin 欄（画像URL または data URL）から読み込む
     function loadCustomSkin(url) {
       const key = customKey(url);
       if (!skinCache.has(key)) {
@@ -1691,7 +1596,6 @@
       return skinCache.get(key);
     }
 
-    // コードで描いた簡易スティーブ（ネットワークが全滅したときの最後の砦）
     function makeProceduralSteve() {
       const cv = document.createElement("canvas");
       cv.width = 64; cv.height = 64;
@@ -1699,29 +1603,22 @@
       const R = (col, x, y, w, h) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
       const SKIN = "#c08a62", HAIR = "#3b2615", SHIRT = "#16a3b0", PANTS = "#3b3b9c", SHOE = "#6e6e6e";
 
-      // 頭
       R(SKIN, 0, 0, 32, 16);
-      R(HAIR, 8, 0, 8, 8);                                   // 頭のてっぺん
-      R(HAIR, 0, 8, 8, 3); R(HAIR, 8, 8, 8, 3); R(HAIR, 16, 8, 8, 3); // 髪の生え際
-      R(HAIR, 24, 8, 8, 6);                                  // 後頭部
-      R("#ffffff", 9, 12, 1, 1);  R("#4b3a9a", 10, 12, 1, 1); // 目
+      R(HAIR, 8, 0, 8, 8);
+      R(HAIR, 0, 8, 8, 3); R(HAIR, 8, 8, 8, 3); R(HAIR, 16, 8, 8, 3);
+      R(HAIR, 24, 8, 8, 6);
+      R("#ffffff", 9, 12, 1, 1);  R("#4b3a9a", 10, 12, 1, 1);
       R("#4b3a9a", 13, 12, 1, 1); R("#ffffff", 14, 12, 1, 1);
-      R("#a06f4c", 11, 13, 2, 1);                            // 鼻
-      R("#7a4a30", 10, 14, 4, 1);                            // 口
-      // 右脚
+      R("#a06f4c", 11, 13, 2, 1);
+      R("#7a4a30", 10, 14, 4, 1);
       R(PANTS, 0, 16, 16, 16); R(SHOE, 0, 28, 16, 4); R(SHOE, 8, 16, 4, 4);
-      // 胴
       R(SHIRT, 16, 16, 24, 16);
-      // 右腕
       R(SKIN, 40, 16, 16, 16); R(SHIRT, 40, 16, 16, 8); R(SKIN, 48, 16, 4, 4);
-      // 左脚
       R(PANTS, 16, 48, 16, 16); R(SHOE, 16, 60, 16, 4); R(SHOE, 24, 48, 4, 4);
-      // 左腕
       R(SKIN, 32, 48, 16, 16); R(SHIRT, 32, 48, 16, 8); R(SKIN, 40, 48, 4, 4);
       return cv;
     }
 
-    // スティーブのスキン（まず公式の初期スキンを取得、無理なら簡易版）
     let stevePromise = null;
     function loadSteve() {
       if (!stevePromise) {
@@ -1731,7 +1628,6 @@
       return stevePromise;
     }
 
-    // そのプレイヤーを識別するキー（登録スキン優先、次にJavaのUUID、統合版で登録なしは null＝スティーブ）
     function getPlayerKey(player) {
       const custom = player && player.skin ? String(player.skin).trim() : "";
       if (custom) return customKey(custom);
@@ -1739,7 +1635,6 @@
       return null;
     }
 
-    // 実際の取得：登録スキン → JavaのUUID の順に試す（登録スキンの失敗理由は消さずに残す）
     function fetchPlayerSkin(player) {
       const custom = player && player.skin ? String(player.skin).trim() : "";
       const viaUuid = () => player.isUuid
@@ -1753,10 +1648,8 @@
       return viaUuid();
     }
 
-    // 失敗したキーごとの再挑戦の状態
-    const skinRetry = new Map(); // key → { tries, running, listeners:Set }
+    const skinRetry = new Map();
 
-    // 裏で最大 SKIN_MAX_RETRY 回やり直し、成功したら待っている全員に結果を渡す
     function scheduleSkinRetry(player, key, onLate) {
       let st = skinRetry.get(key);
       if (!st) {
@@ -1790,13 +1683,11 @@
       step();
     }
 
-    // スキンを取得する。失敗したら例外を投げつつ、裏で再挑戦を予約（成功したら onLate が呼ばれる）
     function loadPlayerSkin(player, onLate) {
       const key = getPlayerKey(player);
       if (!key) return Promise.reject(new Error("スキンなし"));
 
       const st = skinRetry.get(key);
-      // すでに再挑戦中、または回数を使い切っている場合は、むやみに通信しない
       if (st && (st.running || st.tries >= SKIN_MAX_RETRY)) {
         if (st.running && onLate) st.listeners.add(onLate);
         return Promise.reject(new Error(skinErrors.get(key) || "再挑戦中"));
@@ -1811,16 +1702,13 @@
     /* ========================================================
        🟣 一覧用スキン（3Dモデルを斜めから撮影した上半身の画像）
        ======================================================== */
-    // 体の向き（一覧・詳細で共通）。マイナスで左向き、プラスで右向き
     const LIST_YAW = 0.5;
-    // 見下ろす角度（ラジアン）。0で真横、大きいほど上から見下ろす
-    const LIST_PITCH = 0.35;   // 一覧（≒20度）
-    const MODAL_PITCH = 0.3;   // 詳細（≒17度）
+    const LIST_PITCH = 0.35;
+    const MODAL_PITCH = 0.3;
 
     let rList = null, sList, cList;
-    const listImgCache = new Map(); // key → 描画済みの画像(dataURL)
+    const listImgCache = new Map();
 
-    // 一覧の画像を作るための共有レンダラー（画面には表示しない）
     function ensureListRenderer() {
       if (rList) return true;
       if (typeof THREE === "undefined") return false;
@@ -1834,7 +1722,6 @@
       rList.setClearColor(0x000000, 0);
 
       sList = new THREE.Scene();
-      // 縦横20ユニットの範囲を映す。高さ13〜33（頭のてっぺんから胴の途中まで）
       cList = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 300);
       cList.position.set(0, 23 + 100 * Math.sin(LIST_PITCH), 100 * Math.cos(LIST_PITCH));
       cList.lookAt(0, 23, 0);
@@ -1862,7 +1749,6 @@
       rList.render(sList, cList);
       const url = rList.domElement.toDataURL("image/png");
 
-      // 後片付け
       sList.remove(group);
       group.traverse(o => {
         if (o.geometry) o.geometry.dispose();
@@ -1872,7 +1758,6 @@
       return url;
     }
 
-    // 3Dがまったく使えない端末のときだけ使う、元のコードと同じ表示（外部の全身画像を上半身だけ見せる）
     function setListFallback(img, player) {
       const wrap = img.parentElement;
       wrap.className = "h-10 w-7 overflow-hidden flex items-end justify-center relative shrink-0 -translate-x-1";
@@ -1882,7 +1767,6 @@
       img.src = getSkinUrl(player, 140);
     }
 
-    // スティーブの一覧画像（1回だけ描いて使い回す）
     async function getSteveListUrl() {
       let url = listImgCache.get(STEVE_KEY);
       if (!url) {
@@ -1902,7 +1786,6 @@
 
       const key = getPlayerKey(player);
 
-      // 統合版（登録スキンなし）：スティーブをJavaと同じ3D表示にする
       if (!key) {
         getSteveListUrl().then(u => { img.src = u; }).catch(() => setListFallback(img, player));
         return;
@@ -1922,7 +1805,6 @@
         img.src = url;
       };
 
-      // 成功すれば本人のスキン。失敗してもスティーブを出し、裏の再挑戦が成功したら差し替える
       loadPlayerSkin(player, apply)
         .then(apply)
         .catch(() => {
@@ -1935,7 +1817,6 @@
     /* ========================================================
        🟣 3Dスキン（モーダル用）
        ======================================================== */
-    // 角度は度数。x：前後（負が前） z：左右（内向き） body：上半身の前傾
     const POSES = {
       idle:  { rArm:{x:0,    z:0},  lArm:{x:0,    z:0},  rLeg:{x:0,   z:0}, lLeg:{x:0,  z:0}, body:0 },
       guard: { rArm:{x:-65,  z:8},  lArm:{x:-55,  z:-6}, rLeg:{x:-12, z:0}, lLeg:{x:14, z:0}, body:6 },
@@ -1949,9 +1830,8 @@
 
     const rad = d => d * Math.PI / 180;
 
-    // モデルの中心の高さ（足元 0 〜 頭頂 32 の真ん中）
     const MODEL_CENTER_Y = 16;
-    const ROT_SPEED = 0.01; // ドラッグ1pxあたりの回転量（ラジアン）
+    const ROT_SPEED = 0.01;
 
     function ensure3D() {
       if (r3) return true;
@@ -1965,7 +1845,6 @@
       wrap3.appendChild(r3.domElement);
 
       s3 = new THREE.Scene();
-      // モデルの高さ（約32ユニット）が枠の8割程度に入るよう近めに置き、少し上から見下ろす
       c3 = new THREE.PerspectiveCamera(35, 1, 1, 1000);
       c3.position.set(0, MODEL_CENTER_Y + 62 * Math.sin(MODAL_PITCH), 62 * Math.cos(MODAL_PITCH));
       c3.lookAt(0, MODEL_CENTER_Y, 0);
@@ -1978,7 +1857,6 @@
       root3.position.set(0, MODEL_CENTER_Y, 0);
       s3.add(root3);
 
-      // ドラッグで横回転のみ
       let drag = false, lx = 0;
       wrap3.addEventListener("pointerdown", e => {
         drag = true; lx = e.clientX;
@@ -2007,7 +1885,6 @@
       c3.updateProjectionMatrix();
     }
 
-    // ポーズへ滑らかに補間しながら描画（非表示中は描画しない）
     function loop3() {
       requestAnimationFrame(loop3);
       if (!r3 || !wrap3 || wrap3.classList.contains("hidden")) return;
@@ -2033,7 +1910,6 @@
       });
     }
 
-    // UV割り当て（面の順番は BoxGeometry と同じ）
     function rectsFor(u, v, w, h, d) {
       const R = {
         right:  { x: u,             y: v + d, w: d, h: h },
@@ -2077,8 +1953,6 @@
       return p;
     }
 
-    // キャラクター一式を parent の中に組み立てる（モーダルと一覧で共通）
-    // 上半身（頭・胴・腕）は腰を支点に傾けられるよう body グループに入れる
     function makeCharacter(parent, tex, slim) {
       const mat  = new THREE.MeshLambertMaterial({ map: tex });
       const omat = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, transparent: true });
@@ -2108,7 +1982,6 @@
     function buildModel3D(tex, slim) {
       while (root3.children.length) root3.remove(root3.children[0]);
 
-      // 体の中心が回転軸の原点に来るよう、足元を下にずらした入れ物に組み立てる
       const holder = new THREE.Group();
       holder.position.set(0, -MODEL_CENTER_Y, 0);
       root3.add(holder);
@@ -2121,7 +1994,6 @@
       parts3.lLeg = ch.lLeg;
     }
 
-    // 詳細に出す「skinが表示できない理由」とコピーボタンの表示制御
     function setModalNote(text, showCopy = false) {
       const wrap = document.getElementById("modal-skin-note-wrap");
       const el = document.getElementById("modal-skin-note");
@@ -2139,7 +2011,6 @@
       }
     }
 
-    // エラー時のskinデータをクリップボードへコピー
     async function copyErrorSkinData(mode) {
       const player = window.currentModalPlayer;
       if (!player) return;
@@ -2153,21 +2024,20 @@
       const btn = document.getElementById(btnId);
       const origHtml = btn ? btn.innerHTML : "";
 
-      const setBtnFeedback = (label) => {
+      const setBtnFeedback = (labelKey) => {
         if (!btn) return;
-        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>${label}</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>${t(labelKey)}</span>`;
         setTimeout(() => { btn.innerHTML = origHtml; }, 1600);
       };
 
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);
-          setBtnFeedback("コピー完了");
+          setBtnFeedback("copied");
           return;
         }
       } catch (_) {}
 
-      // フォールバック（Clipboard APIが使えない環境向け）
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
@@ -2176,18 +2046,16 @@
       ta.select();
       try {
         document.execCommand("copy");
-        setBtnFeedback("コピー完了");
+        setBtnFeedback("copied");
       } catch (_) {
-        setBtnFeedback("コピー失敗");
+        setBtnFeedback("copy_failed");
       } finally {
         ta.remove();
       }
     }
 
-    // 詳細に3Dモデルを表示する。reset が true のときは向きとポーズを初期状態に戻す
-    // ポーズボタンは、3D表示のときは常に出す（Java版は全員、統合版はskinがある人だけがここに来る）
     function applyModalSkin({ cv, slim }, reqId, reset) {
-      if (reqId !== skinReqId) return; // 別のプレイヤーを開いた後なら何もしない
+      if (reqId !== skinReqId) return;
       const img = document.getElementById("modal-fullbody");
       const box = document.getElementById("skin3d");
       const poseBar = document.getElementById("pose-buttons");
@@ -2198,13 +2066,13 @@
       tex.needsUpdate = true;
 
       buildModel3D(tex, slim);
-      if (reset) root3.rotation.set(0, LIST_YAW, 0); // 一覧と同じ斜めの向きで開く
+      if (reset) root3.rotation.set(0, LIST_YAW, 0);
 
       img.classList.add("hidden");
       box.classList.remove("hidden");
       poseBar.classList.remove("hidden");
       resize3D();
-      if (reset) setPose("idle"); // 最初は待機ポーズ
+      if (reset) setPose("idle");
     }
 
     async function show3DSkin(player) {
@@ -2213,7 +2081,6 @@
       const box = document.getElementById("skin3d");
       const poseBar = document.getElementById("pose-buttons");
 
-      // いったん2D表示に戻し、ポーズボタンも隠す
       box.classList.add("hidden");
       poseBar.classList.add("hidden");
       img.classList.remove("hidden");
@@ -2229,11 +2096,9 @@
         img.src = getSkinUrl(player, 150);
       };
 
-      // 統合版（登録スキンなし）、Three.js未読込、WebGL不可の場合は従来の2D表示（ボタンなし）
       if (!getPlayerKey(player) || typeof THREE === "undefined" || !ensure3D()) return showFallback();
 
       try {
-        // 失敗しても、裏の再挑戦が成功した時点で本人のスキンに差し替える（向き・ポーズはそのまま）
         const res = await loadPlayerSkin(player, r => {
           if (reqId !== skinReqId) return;
           setModalNote("", false);
@@ -2244,10 +2109,9 @@
       } catch (e) {
         if (reqId !== skinReqId) return;
         console.warn("スキン取得失敗。スティーブを表示して再挑戦します:", e);
-        // skinが登録されているのに読めなかったときは、理由とコピーボタンを画面に出す
         if (player.skin || player.rawSkin) {
           setModalNote(
-            "登録スキンを読み込めませんでした：" + (e && e.message ? e.message : "不明なエラー"),
+            t('skin_load_failed') + (e && e.message ? e.message : t('skin_unknown_error')),
             true
           );
         }

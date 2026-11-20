@@ -47,7 +47,7 @@
     body {
       background-color: #07030d;
       color: #e2e8f0;
-      background-image:
+      background-image: 
         radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.28) 0%, transparent 55%),
         radial-gradient(circle at 85% 85%, rgba(217, 70, 239, 0.15) 0%, transparent 45%),
         radial-gradient(circle at 15% 90%, rgba(139, 92, 246, 0.22) 0%, transparent 55%);
@@ -213,7 +213,7 @@
       border: 1px solid rgba(253, 186, 116, 0.95);
     }
     .rank-3-box.rank-shining::after { animation-delay: 0.6s; }
-
+    
     .rank-normal-box {
       background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
@@ -284,7 +284,7 @@
       transform: translateX(6px);
       box-shadow: inset 5px 0 0 0 #e879f9, 0 8px 25px rgba(217, 70, 239, 0.35);
     }
-
+    
     #tier-tbody tr:hover img {
       filter: drop-shadow(0 0 12px rgba(232, 121, 249, 0.9));
       transition: filter 0.3s ease;
@@ -546,9 +546,9 @@
         <div class="relative group mt-2 shrink-0">
           <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-300"></div>
           <div class="relative w-24 h-36 sm:w-28 sm:h-40 bg-brand-dark/90 rounded-xl border border-brand-purple/50 flex items-center justify-center p-2 overflow-hidden">
-            <!-- 3Dスキン表示 -->
+            <!-- 3Dスキン表示（スキンを取得できたとき） -->
             <div id="skin3d" class="hidden w-full h-full"></div>
-            <!-- 2Dフォールバック -->
+            <!-- 2D表示（統合版でskin未登録のとき・3D失敗時のフォールバック） -->
             <img id="modal-fullbody" src="" alt="Skin" onerror="handleModalSkinError(this)" class="h-full object-contain object-bottom filter drop-shadow-[0_0_10px_rgba(168,85,247,0.7)]">
           </div>
         </div>
@@ -559,7 +559,7 @@
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="text-[10px] sm:text-[11px] font-mono text-gray-300" id="modal-edition-badge">Verified Player</span>
           </div>
-          <!-- skinが登録されているのに表示できないときの理由＆コピーボタン -->
+          <!-- skinの注意・失敗理由＆コピーボタン -->
           <div id="modal-skin-note-wrap" class="hidden mt-2 space-y-1.5">
             <div id="modal-skin-note" class="text-[10px] font-mono text-amber-300 leading-snug break-all"></div>
             <div id="modal-skin-copy-actions" class="hidden flex flex-wrap gap-1.5">
@@ -574,7 +574,7 @@
         </div>
       </div>
 
-      <!-- ポーズ切り替え -->
+      <!-- ポーズ切り替え（3D表示のときだけ表示：Java版は全員、統合版はskinがある人） -->
       <div id="pose-buttons" class="hidden mb-3">
         <div class="flex gap-1.5">
           <button class="pose-btn flex-1 text-[11px] font-orbitron py-1.5 rounded bg-brand-dark border border-brand-border text-gray-300" data-pose="idle" data-i18n="pose_idle" onclick="setPose('idle')">待機</button>
@@ -598,10 +598,11 @@
   </footer>
 
   <script>
+    // データ取得用のGAS Webアプリ（書き込み非対応なので、コードに直接書いてOK）
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbp5y1Q6t3UG2XCCLuGlHH4ER-aeAZRZpnyAv7G-RHJrhQ8p0hv63ymzF1ozxBswKY7Q/exec";
 
     /* ========================================================
-       🌐 多言語対応（JA / EN）＆ ハッシュ末尾（/#/tier/ja 等）同期
+       🌐 多言語対応（JA / EN）＆ URLハッシュ（#/tier/ja など）同期
        ======================================================== */
     const I18N = {
       ja: {
@@ -650,6 +651,7 @@
         skin_load_failed: "登録スキンを読み込めませんでした：",
         skin_unknown_error: "不明なエラー",
         skin_format_error: (len, head) => `skin欄の形式が違います（長さ${len}、先頭「${head}」）`,
+        skin_base_filled: (pct) => `1レイヤー目（ベース層）の透明部分を自動で補完しました（${pct}%）`,
         footer_rights: "All rights reserved. Not affiliated with Mojang AB."
       },
       en: {
@@ -698,12 +700,12 @@
         skin_load_failed: "Failed to load custom skin: ",
         skin_unknown_error: "Unknown error",
         skin_format_error: (len, head) => `Invalid skin format (len=${len}, starts with "${head}")`,
+        skin_base_filled: (pct) => `Auto-filled transparent areas of the base layer (${pct}%)`,
         footer_rights: "All rights reserved. Not affiliated with Mojang AB."
       }
     };
 
     let currentLang = 'ja';
-    let currentTab = 'home';
 
     function t(key, ...args) {
       const dict = I18N[currentLang] || I18N.ja;
@@ -711,48 +713,43 @@
       return typeof val === 'function' ? val(...args) : val;
     }
 
+    /* ---------- URLハッシュの読み書き ----------
+       形式：#/home/ja  #/tier/ja  #/tier/プレイヤー名/ja
+       （末尾が ja / en のときだけ言語として扱う。言語なしの古い形 #/tier や #/tier/名前 もそのまま動く）
+       パスは変えないので、GitHub Pagesで404になることはない */
     function parseHashRoute() {
-      const rawHash = window.location.hash || '';
-      const trimmed = rawHash.replace(/^#\/?/, '');
-      const parts = trimmed ? trimmed.split('/').map(s => decodeURIComponent(s)) : [];
-
+      const raw = window.location.hash.replace(/^#\/?/, '');
+      const segs = raw.split('/').filter(Boolean).map(s => {
+        try { return decodeURIComponent(s); } catch (_) { return s; }
+      });
       let lang = null;
-      if (parts.length > 0 && (parts[parts.length - 1] === 'ja' || parts[parts.length - 1] === 'en')) {
-        lang = parts.pop();
-      } else {
-        const pathnameLangMatch = window.location.pathname.match(/\/(ja|en)\/?$/i);
-        if (pathnameLangMatch) {
-          lang = pathnameLangMatch[1].toLowerCase();
-        }
+      if (segs.length && /^(ja|en)$/i.test(segs[segs.length - 1])) {
+        lang = segs.pop().toLowerCase();
       }
-
-      if (!lang) {
-        const saved = localStorage.getItem('clytiers_lang');
-        lang = saved === 'en' ? 'en' : 'ja';
-      }
-
-      const tab = parts[0] === 'tier' ? 'tier' : 'home';
-      const username = (tab === 'tier' && parts.length >= 2) ? parts.slice(1).join('/') : null;
-
-      return { tab, username, lang };
+      const tab = segs[0] === 'tier' ? 'tier' : 'home';
+      const user = tab === 'tier' ? segs.slice(1).join('/') : '';
+      return { tab, user, lang };
     }
 
-    function buildHashUrl(tab, username, lang) {
-      const safeLang = lang === 'en' ? 'en' : 'ja';
-      if (tab === 'tier') {
-        if (username) {
-          return `#/tier/${encodeURIComponent(username)}/${safeLang}`;
-        }
-        return `#/tier/${safeLang}`;
-      }
-      return `#/home/${safeLang}`;
+    function buildHash(tab, user) {
+      let h = '#/' + tab;
+      if (tab === 'tier' && user) h += '/' + encodeURIComponent(user);
+      return h + '/' + currentLang;
     }
 
-    function syncHashLocation(tab, username, lang) {
-      const nextHash = buildHashUrl(tab, username, lang);
-      if (window.location.hash !== nextHash) {
-        window.history.replaceState(null, '', nextHash);
-      }
+    // 画面遷移やhashchangeを起こさずに、アドレスバーの言語部分だけ更新する
+    function syncHashLang() {
+      try {
+        const { tab, user } = parseHashRoute();
+        window.history.replaceState(null, '', window.location.pathname + window.location.search + buildHash(tab, user));
+      } catch (_) {}
+    }
+
+    function detectInitialLang() {
+      const fromHash = parseHashRoute().lang;
+      if (fromHash) return fromHash;
+      const saved = localStorage.getItem('clytiers_lang');
+      return saved === 'en' ? 'en' : 'ja';
     }
 
     function applyTranslations() {
@@ -790,12 +787,11 @@
       }
     }
 
-    function setLanguage(lang, syncHash = true) {
+    function setLanguage(lang, syncUrl = true) {
       currentLang = lang === 'en' ? 'en' : 'ja';
       localStorage.setItem('clytiers_lang', currentLang);
-      if (syncHash) {
-        const modalUsername = window.currentModalPlayer ? window.currentModalPlayer.name : null;
-        syncHashLocation(currentTab, modalUsername, currentLang);
+      if (syncUrl) {
+        syncHashLang();
       }
       applyTranslations();
     }
@@ -821,7 +817,7 @@
       outerRipple.style.height = outerSize + 'px';
       outerRipple.style.left = (e.clientX - outerSize / 2) + 'px';
       outerRipple.style.top = (e.clientY - outerSize / 2) + 'px';
-
+      
       const innerRipple = document.createElement('div');
       innerRipple.className = 'water-ripple-inner';
       const innerSize = 25;
@@ -829,11 +825,11 @@
       innerRipple.style.height = innerSize + 'px';
       innerRipple.style.left = (e.clientX - innerSize / 2) + 'px';
       innerRipple.style.top = (e.clientY - innerSize / 2) + 'px';
-
+      
       document.body.appendChild(fog);
       document.body.appendChild(outerRipple);
       document.body.appendChild(innerRipple);
-
+      
       setTimeout(() => fog.remove(), 750);
       setTimeout(() => outerRipple.remove(), 650);
       setTimeout(() => innerRipple.remove(), 500);
@@ -935,6 +931,10 @@
       }
       animate();
 
+      // 初期言語の反映（URLの言語 → 保存された言語 → 日本語）
+      setLanguage(detectInitialLang(), false);
+
+      // ページ読み込み・ハッシュ変更時のルーター初期化
       handleRouting();
       window.addEventListener('hashchange', handleRouting);
     });
@@ -1103,74 +1103,87 @@
     }
 
     /* ========================================================
-       🟣 ルーター＆タブ切り替え機構（末尾 /ja, /en 対応）
+       🟣 ルーター＆タブ切り替え機構
        ======================================================== */
     function switchTab(tabName, updateHash = true) {
-      currentTab = tabName === 'tier' ? 'tier' : 'home';
-
       document.getElementById('tab-home').classList.add('hidden');
       document.getElementById('tab-tier').classList.add('hidden');
-
+      
       document.getElementById('nav-home').classList.replace('text-brand-lightPurple', 'text-gray-300');
       document.getElementById('nav-tier').classList.replace('text-brand-lightPurple', 'text-gray-300');
 
-      const targetTab = document.getElementById(`tab-${currentTab}`);
-      const targetNav = document.getElementById(`nav-${currentTab}`);
+      const targetTab = document.getElementById(`tab-${tabName}`);
+      const targetNav = document.getElementById(`nav-${tabName}`);
 
       if (targetTab) targetTab.classList.remove('hidden');
       if (targetNav) targetNav.classList.replace('text-gray-300', 'text-brand-lightPurple');
 
-      if (currentTab === 'tier' && !isDataLoaded) {
-        fetchSpreadsheetData();
+      if (tabName === 'tier') {
+        if (!isDataLoaded) {
+          fetchSpreadsheetData();
+        }
       }
 
       if (updateHash) {
-        const modalUsername = window.currentModalPlayer ? window.currentModalPlayer.name : null;
-        syncHashLocation(currentTab, modalUsername, currentLang);
+        window.location.hash = buildHash(tabName === 'tier' ? 'tier' : 'home', '');
+      }
+    }
+
+    // 開いている詳細を、URLを変えずに閉じる（ブラウザの「戻る」用）
+    function hideModalSilently() {
+      const modal = document.getElementById('player-modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+        window.currentModalPlayer = null;
+        skinReqId++;
       }
     }
 
     function handleRouting() {
-      const route = parseHashRoute();
-      currentLang = route.lang;
-      localStorage.setItem('clytiers_lang', currentLang);
-      applyTranslations();
+      const { tab, user, lang } = parseHashRoute();
 
-      switchTab(route.tab, false);
+      // URLの言語が今の言語と違うときは切り替える（URLは書き換えない）
+      if (lang && lang !== currentLang) {
+        setLanguage(lang, false);
+      }
 
-      if (route.tab === 'tier') {
-        if (route.username) {
+      if (tab === 'tier') {
+        switchTab('tier', false);
+        if (user) {
           if (!isDataLoaded) {
-            fetchSpreadsheetData().then(() => openUserByUsername(route.username));
+            fetchSpreadsheetData().then(() => openUserByUsername(user));
           } else {
-            openUserByUsername(route.username);
+            openUserByUsername(user);
           }
-        } else if (window.currentModalPlayer) {
-          document.getElementById('player-modal').classList.add('hidden');
-          window.currentModalPlayer = null;
+        } else {
+          hideModalSilently();
         }
-        syncHashLocation('tier', route.username, currentLang);
       } else {
-        if (window.currentModalPlayer) {
-          document.getElementById('player-modal').classList.add('hidden');
-          window.currentModalPlayer = null;
-        }
-        syncHashLocation('home', null, currentLang);
+        switchTab('home', false);
+        hideModalSilently();
+      }
+
+      // 言語なしのURL（#/tier など）で来たときは、今の言語を付け足して統一する
+      if (!lang) {
+        syncHashLang();
       }
     }
 
     function openUserByUsername(username) {
-      const found = playersData.find(
-        p => p.name.toLowerCase() === username.toLowerCase() || p.rawId.toLowerCase() === username.toLowerCase()
-      );
-      if (found) {
-        openModal(found, false);
-      }
+      const found = playersData.find(p => p.name.toLowerCase() === username.toLowerCase() || p.rawId.toLowerCase() === username.toLowerCase());
+      if (!found) return;
+
+      // すでに同じプレイヤーの詳細を開いているなら開き直さない
+      const modal = document.getElementById('player-modal');
+      const cur = window.currentModalPlayer;
+      if (cur && cur.name === found.name && modal && !modal.classList.contains('hidden')) return;
+
+      openModal(found, false);
     }
 
     function filterKit(kit) {
       activeKitFilter = kit;
-
+      
       document.querySelectorAll('.kit-tab').forEach(btn => {
         if (btn.getAttribute('data-kit') === kit) {
           btn.className = "kit-tab active bg-brand-purple text-white px-4 py-2 rounded-lg font-orbitron text-xs font-bold whitespace-nowrap flex items-center gap-1.5 border border-brand-lightPurple";
@@ -1183,6 +1196,8 @@
     }
 
     // skin欄の値を整える。画像URL・data URL・Base64だけの文字列（PNGの先頭 iVBORw0KGgo）に対応
+    // 空白・全角スペースの除去、URLセーフBase64の変換、Base64以外の不正文字の除去を行う
+    // 使えない値のときは空文字を返す（＝skinなし扱い）
     function normalizeSkinValue(v) {
       if (v === undefined || v === null) return '';
       let s = String(v).replace(/[\s\u3000]+/g, '');
@@ -1200,6 +1215,7 @@
         return '';
       }
 
+      // URLセーフBase64を標準に変換し、Base64以外の不正文字を除去
       b64 = b64.replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/=]/g, '');
       if (!b64) return '';
 
@@ -1226,7 +1242,7 @@
       try {
         const sep = GAS_WEB_APP_URL.includes("?") ? "&" : "?";
         const webAppUrl = `${GAS_WEB_APP_URL}${sep}t=` + new Date().getTime();
-
+        
         const response = await fetch(webAppUrl);
         const rawData = await response.json();
 
@@ -1279,7 +1295,7 @@
     function handleLoadData() {
       const loadBtn = document.getElementById('load-btn');
       const cooldownText = document.getElementById('cooldown-text');
-
+      
       if (loadBtn.disabled) return;
 
       fetchSpreadsheetData(true);
@@ -1336,7 +1352,7 @@
         const delay = Math.min(idx * 0.03, 1.0);
         tr.className = "tier-row-animated cursor-pointer border-b border-brand-border/40";
         tr.style.animationDelay = `${delay}s`;
-
+        
         tr.onclick = () => {
           openModal(p, true);
         };
@@ -1344,7 +1360,7 @@
         const rankNum = idx + 1;
         let rankBoxClass = 'rank-normal-box';
         let shiningClass = '';
-
+        
         if (rankNum === 1) { rankBoxClass = 'rank-1-box'; shiningClass = 'rank-shining'; }
         else if (rankNum === 2) { rankBoxClass = 'rank-2-box'; shiningClass = 'rank-shining'; }
         else if (rankNum === 3) { rankBoxClass = 'rank-3-box'; shiningClass = 'rank-shining'; }
@@ -1364,7 +1380,7 @@
           const colorClass = getTierColorClass(tier);
           const imgTag = getKitImageTag(activeKitFilter);
           kitBadges = `<span class="tier-badge ${colorClass}">${imgTag} ${activeKitFilter}: ${tier}</span>`;
-
+          
           const fullTitle = formatTierFullTitle(tier);
           if (fullTitle) {
             subTierTextHtml = `<div class="text-[10px] text-brand-lightPurple font-mono whitespace-nowrap">${fullTitle}</div>`;
@@ -1400,14 +1416,13 @@
 
     function openModal(player, updateHash = true) {
       window.currentModalPlayer = player;
-      currentTab = 'tier';
       if (updateHash) {
-        syncHashLocation('tier', player.name, currentLang);
+        window.location.hash = buildHash('tier', player.name);
       }
 
       document.getElementById('modal-name').innerText = player.name;
       document.getElementById('modal-edition-badge').innerText = player.isUuid ? t('edition_java') : t('edition_bedrock');
-
+      
       const totalScore = calculatePlayerOverallScore(player);
       document.getElementById('modal-total-score').innerText = `Total Score: ${totalScore} pts`;
 
@@ -1438,7 +1453,7 @@
     function closeModal() {
       document.getElementById('player-modal').classList.add('hidden');
       window.currentModalPlayer = null;
-      syncHashLocation('tier', null, currentLang);
+      window.location.hash = buildHash('tier', '');
     }
 
     function handleModalBgClick(event) {
@@ -1448,7 +1463,7 @@
     }
 
     /* ========================================================
-       🟣 スキン取得（Java Edition準拠・一覧＆モーダル共通）
+       🟣 スキン取得（一覧・モーダル共通）
        ======================================================== */
     const SKIN_SOURCES = [
       { name: "mc-heads", url: id => `https://mc-heads.net/skin/${id}` },
@@ -1521,23 +1536,103 @@
       });
     }
 
-    // Minecraft Java Edition 1.8+ 64x64スキン仕様に基づくSlim(Alex)判定
-    // 右腕オーバーレイ領域(x=44..55, y=32..47)またはベース領域のSLIM幅(3px)をチェック
-    function detectSlim(cx) {
-      const overlayRightStrip = cx.getImageData(54, 36, 2, 12).data;
-      const baseRightStrip = cx.getImageData(46, 20, 2, 12).data;
-      let hasOverlayAlpha = false;
-      let hasBaseAlpha = false;
-      for (let i = 3; i < overlayRightStrip.length; i += 4) {
-        if (overlayRightStrip[i] > 10) hasOverlayAlpha = true;
+    // 画素データ d（64×64のRGBA）の指定範囲がすべて透明か／すべて黒か
+    function isAreaTransparent(d, x, y, w, h) {
+      for (let yy = 0; yy < h; yy++) {
+        for (let xx = 0; xx < w; xx++) {
+          if (d[((y + yy) * 64 + (x + xx)) * 4 + 3] !== 0) return false;
+        }
       }
-      for (let i = 3; i < baseRightStrip.length; i += 4) {
-        if (baseRightStrip[i] > 10) hasBaseAlpha = true;
+      return true;
+    }
+    function isAreaBlack(d, x, y, w, h) {
+      for (let yy = 0; yy < h; yy++) {
+        for (let xx = 0; xx < w; xx++) {
+          const i = ((y + yy) * 64 + (x + xx)) * 4;
+          if (d[i] !== 0 || d[i + 1] !== 0 || d[i + 2] !== 0 || d[i + 3] !== 255) return false;
+        }
       }
-      return !hasOverlayAlpha && !hasBaseAlpha;
+      return true;
     }
 
-    // 旧32x32スキンから64x64 Java Editionスキンへ変換
+    // 細腕(Slim)の判定：細腕のときだけ使われない領域（腕の右端の列）がすべて透明（または黒）なら細腕
+    function detectSlimFromData(d) {
+      const areas = [[50, 16, 2, 4], [54, 20, 2, 12], [42, 48, 2, 4], [46, 52, 2, 12]];
+      return areas.every(a => isAreaTransparent(d, a[0], a[1], a[2], a[3])) ||
+             areas.every(a => isAreaBlack(d, a[0], a[1], a[2], a[3]));
+    }
+
+    // 直方体（左上u,v・幅w・高さh・奥行d）が使う6面の矩形
+    function faceRects(u, v, w, h, dd) {
+      return [
+        [u + dd,         v,      w,  dd],  // 上
+        [u + dd + w,     v,      w,  dd],  // 下
+        [u,              v + dd, dd, h ],  // 右
+        [u + dd,         v + dd, w,  h ],  // 前
+        [u + dd + w,     v + dd, dd, h ],  // 左
+        [u + 2 * dd + w, v + dd, w,  h ]   // 後
+      ];
+    }
+
+    // 1レイヤー目（ベース層）の透明な画素を補完する。
+    // Minecraft本体もベース層は不透明として扱う。透明なままだと黒や抜けになってしまうので、
+    // 同じ位置の2レイヤー目（上着・帽子）が不透明ならその色、なければそのパーツの平均色で埋める。
+    // 戻り値：補完した画素の割合（%）
+    function fixBaseLayer(d, slim) {
+      const aw = slim ? 3 : 4;
+      const parts = [
+        { base: [0, 0, 8, 8, 8],        over: [32, 0]  },  // 頭
+        { base: [16, 16, 8, 12, 4],     over: [16, 32] },  // 胴
+        { base: [40, 16, aw, 12, 4],    over: [40, 32] },  // 右腕
+        { base: [32, 48, aw, 12, 4],    over: [48, 48] },  // 左腕
+        { base: [0, 16, 4, 12, 4],      over: [0, 32]  },  // 右脚
+        { base: [16, 48, 4, 12, 4],     over: [0, 48]  }   // 左脚
+      ];
+      let total = 0, filled = 0;
+
+      for (const p of parts) {
+        const [u, v, w, h, dd] = p.base;
+        const dx = p.over[0] - u, dy = p.over[1] - v;
+        const rects = faceRects(u, v, w, h, dd);
+
+        // このパーツの平均色（不透明な画素から）
+        let r = 0, g = 0, b = 0, n = 0;
+        for (const [x, y, rw, rh] of rects) {
+          for (let yy = 0; yy < rh; yy++) {
+            for (let xx = 0; xx < rw; xx++) {
+              const i = ((y + yy) * 64 + (x + xx)) * 4;
+              if (d[i + 3] >= 250) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+            }
+          }
+        }
+        const avg = n ? [Math.round(r / n), Math.round(g / n), Math.round(b / n)] : [192, 138, 98];
+
+        for (const [x, y, rw, rh] of rects) {
+          for (let yy = 0; yy < rh; yy++) {
+            for (let xx = 0; xx < rw; xx++) {
+              const i = ((y + yy) * 64 + (x + xx)) * 4;
+              total++;
+              const a = d[i + 3];
+              if (a < 255) {
+                if (a < 128) {
+                  filled++;
+                  const oi = ((y + yy + dy) * 64 + (x + xx + dx)) * 4;
+                  if (d[oi + 3] >= 128) {
+                    d[i] = d[oi]; d[i + 1] = d[oi + 1]; d[i + 2] = d[oi + 2];
+                  } else {
+                    d[i] = avg[0]; d[i + 1] = avg[1]; d[i + 2] = avg[2];
+                  }
+                }
+                d[i + 3] = 255;
+              }
+            }
+          }
+        }
+      }
+      return total ? Math.round((filled / total) * 1000) / 10 : 0;
+    }
+
+    // 旧形式(64×32)のスキンを64×64に変換する（左脚・左腕を右側から左右反転してコピー）
     function convertLegacySkin(cx) {
       const flipCopy = (sx, sy, dx, dy, w, h) => {
         const src = cx.getImageData(sx, sy, w, h);
@@ -1554,14 +1649,12 @@
         }
         cx.putImageData(out, dx, dy);
       };
-      // 右脚 -> 左脚
       flipCopy(4, 16, 20, 48, 4, 4);
       flipCopy(8, 16, 24, 48, 4, 4);
       flipCopy(0, 20, 24, 52, 4, 12);
       flipCopy(4, 20, 20, 52, 4, 12);
       flipCopy(8, 20, 16, 52, 4, 12);
       flipCopy(12, 20, 28, 52, 4, 12);
-      // 右腕 -> 左腕
       flipCopy(44, 16, 36, 48, 4, 4);
       flipCopy(48, 16, 40, 48, 4, 4);
       flipCopy(40, 20, 40, 52, 4, 12);
@@ -1570,6 +1663,8 @@
       flipCopy(52, 20, 44, 52, 4, 12);
     }
 
+    // 画像を 64×64 のキャンバスにして、細腕判定とベース層の補完を行って返す
+    // 対応する大きさ：64×64 / 128×128などの正方形（64の倍数） / 旧形式の64×32（128×64など）
     function imageToSkin(im) {
       const w = im.naturalWidth || im.width;
       const h = im.naturalHeight || im.height;
@@ -1588,7 +1683,13 @@
       } else {
         throw new Error(`スキン画像の大きさが非対応です（${w}×${h}）`);
       }
-      return { cv, slim: detectSlim(cx) };
+
+      const imgData = cx.getImageData(0, 0, 64, 64);
+      const slim = detectSlimFromData(imgData.data);   // 補完する前の状態で判定する
+      const baseFixPct = fixBaseLayer(imgData.data, slim);
+      cx.putImageData(imgData, 0, 0);
+
+      return { cv, slim, baseFixPct };
     }
 
     function loadSkinCanvas(uuid) {
@@ -1663,7 +1764,7 @@
     function loadSteve() {
       if (!stevePromise) {
         stevePromise = loadSkinCanvas(STEVE_UUID)
-          .catch(() => ({ cv: makeProceduralSteve(), slim: false }));
+          .catch(() => ({ cv: makeProceduralSteve(), slim: false, baseFixPct: 0 }));
       }
       return stevePromise;
     }
@@ -1740,157 +1841,11 @@
     }
 
     /* ========================================================
-       🟣 Java Edition 準拠 UV・ボックス構築ユーティリティ
-       ========================================================
-       Minecraftスキンテクスチャ(64x64)の標準レイアウト:
-       - Top    (+Y): (u + d, v)          サイズ (w, d)
-       - Bottom (-Y): (u + d + w, v)      サイズ (w, d)
-       - Right  (+X): (u, v + d)          サイズ (d, h)   ※ キャラ正面から見て右側(+X)
-       - Front  (+Z): (u + d, v + d)      サイズ (w, h)
-       - Left   (-X): (u + d + w, v + d)  サイズ (d, h)   ※ キャラ正面から見て左側(-X)
-       - Back   (-Z): (u + 2d + w, v + d) サイズ (w, h)
-
-       THREE.BoxGeometry の面インデックス順:
-       0: +x (右面), 1: -x (左面), 2: +y (上面), 3: -y (底面), 4: +z (前面), 5: -z (背面)
-    */
-    function buildJavaBoxGeometry(w, h, d, u, v, inflate = 0) {
-      const gx = w + inflate * 2;
-      const gy = h + inflate * 2;
-      const gz = d + inflate * 2;
-      const geom = new THREE.BoxGeometry(gx, gy, gz);
-      const uv = geom.attributes.uv;
-
-      // 各面の (x0, y0, pw, ph) を64x64ピクセル座標で定義（yは上から下）
-      const faceRects = [
-        // 0: +X (キャラ右面 -> テクスチャ上は u, v+d, w=d, h=h)
-        { x: u,             y: v + d, w: d, h: h },
-        // 1: -X (キャラ左面 -> テクスチャ上は u+d+w, v+d, w=d, h=h)
-        { x: u + d + w,     y: v + d, w: d, h: h },
-        // 2: +Y (上面 -> テクスチャ上は u+d, v, w=w, h=d)
-        { x: u + d,         y: v,     w: w, h: d },
-        // 3: -Y (底面 -> テクスチャ上は u+d+w, v, w=w, h=d)
-        { x: u + d + w,     y: v,     w: w, h: d },
-        // 4: +Z (前面 -> テクスチャ上は u+d, v+d, w=w, h=h)
-        { x: u + d,         y: v + d, w: w, h: h },
-        // 5: -Z (背面 -> テクスチャ上は u+2d+w, v+d, w=w, h=h)
-        { x: u + 2 * d + w, y: v + d, w: w, h: h }
-      ];
-
-      const texSize = 64;
-
-      for (let faceIdx = 0; faceIdx < 6; faceIdx++) {
-        const r = faceRects[faceIdx];
-        const uMin = r.x / texSize;
-        const uMax = (r.x + r.w) / texSize;
-        // WebGL UVのv=1が画像上端、v=0が画像下端
-        const vMax = 1 - (r.y / texSize);
-        const vMin = 1 - ((r.y + r.h) / texSize);
-
-        // BoxGeometryの各面は4頂点（左上, 右上, 左下, 右下 の順）
-        const baseVertex = faceIdx * 4;
-        uv.setXY(baseVertex + 0, uMin, vMax); // 左上
-        uv.setXY(baseVertex + 1, uMax, vMax); // 右上
-        uv.setXY(baseVertex + 2, uMin, vMin); // 左下
-        uv.setXY(baseVertex + 3, uMax, vMin); // 右下
-      }
-
-      uv.needsUpdate = true;
-      return geom;
-    }
-
-    function createJavaBoxMesh(w, h, d, u, v, inflate, x, y, z, material) {
-      const geom = buildJavaBoxGeometry(w, h, d, u, v, inflate);
-      const mesh = new THREE.Mesh(geom, material);
-      mesh.position.set(x, y, z);
-      return mesh;
-    }
-
-    function createJavaLimbPivot(pivotX, pivotY, w, h, d, baseUV, overUV, inflateOver, baseMat, overMat) {
-      const pivot = new THREE.Group();
-      pivot.position.set(pivotX, pivotY, 0);
-
-      // 関節ピボットから下方向へ h/2 ずらして limb を配置（回転軸が肩・股関節になる）
-      const centerY = -h / 2;
-      pivot.add(
-        createJavaBoxMesh(w, h, d, baseUV[0], baseUV[1], 0, 0, centerY, 0, baseMat),
-        createJavaBoxMesh(w, h, d, overUV[0], overUV[1], inflateOver, 0, centerY, 0, overMat)
-      );
-      return pivot;
-    }
-
-    // Java Edition キャラクター（頭・胴体・右腕・左腕・右脚・左脚 + 全オーバーレイ）を構築
-    function makeCharacter(parent, tex, slim) {
-      const baseMat = new THREE.MeshLambertMaterial({
-        map: tex,
-        side: THREE.FrontSide
-      });
-      const overMat = new THREE.MeshLambertMaterial({
-        map: tex,
-        transparent: true,
-        alphaTest: 0.1,
-        side: THREE.DoubleSide
-      });
-
-      const armW = slim ? 3 : 4;
-      const armPivotOffsetX = slim ? 3.5 : 4; // 胴体幅8(±4)の隣に配置
-
-      // 胴体グループ（股関節高さ y=12 に配置）
-      const body = new THREE.Group();
-      body.position.set(0, 12, 0);
-      parent.add(body);
-
-      // 頭（胴体上端 y=12 の上に中心 y=16 -> 高さ8なので y=12..20）
-      body.add(
-        createJavaBoxMesh(8, 8, 8, 0, 0, 0, 0, 16, 0, baseMat),
-        createJavaBoxMesh(8, 8, 8, 32, 0, 0.5, 0, 16, 0, overMat)
-      );
-
-      // 胴体本体（y=0..12 なので中心 y=6）
-      body.add(
-        createJavaBoxMesh(8, 12, 4, 16, 16, 0, 0, 6, 0, baseMat),
-        createJavaBoxMesh(8, 12, 4, 16, 32, 0.25, 0, 6, 0, overMat)
-      );
-
-      // 右腕（画面左側に表示されるキャラの右手側: -X, 肩ピボット y=12）
-      const rArm = createJavaLimbPivot(
-        -armPivotOffsetX, 12, armW, 12, 4,
-        [40, 16], [40, 32], 0.25,
-        baseMat, overMat
-      );
-
-      // 左腕（画面右側に表示されるキャラの左手側: +X, 肩ピボット y=12）
-      const lArm = createJavaLimbPivot(
-        armPivotOffsetX, 12, armW, 12, 4,
-        [32, 48], [48, 48], 0.25,
-        baseMat, overMat
-      );
-
-      // 右脚（-X, 股関節ピボット y=12 -> 下端 y=0）
-      const rLeg = createJavaLimbPivot(
-        -2, 12, 4, 12, 4,
-        [0, 16], [0, 32], 0.25,
-        baseMat, overMat
-      );
-
-      // 左脚（+X, 股関節ピボット y=12 -> 下端 y=0）
-      const lLeg = createJavaLimbPivot(
-        2, 12, 4, 12, 4,
-        [16, 48], [0, 48], 0.25,
-        baseMat, overMat
-      );
-
-      body.add(rArm, lArm);
-      parent.add(rLeg, lLeg);
-
-      return { body, rArm, lArm, rLeg, lLeg };
-    }
-
-    /* ========================================================
        🟣 一覧用スキン（3Dモデルを斜めから撮影した上半身の画像）
        ======================================================== */
-    const LIST_YAW = 0.45;
-    const LIST_PITCH = 0.25;
-    const MODAL_PITCH = 0.22;
+    const LIST_YAW = 0.5;
+    const LIST_PITCH = 0.35;
+    const MODAL_PITCH = 0.3;
 
     let rList = null, sList, cList;
     const listImgCache = new Map();
@@ -1908,12 +1863,12 @@
       rList.setClearColor(0x000000, 0);
 
       sList = new THREE.Scene();
-      cList = new THREE.OrthographicCamera(-9.5, 9.5, 9.5, -9.5, 1, 300);
-      cList.position.set(0, 24 + 100 * Math.sin(LIST_PITCH), 100 * Math.cos(LIST_PITCH));
-      cList.lookAt(0, 24, 0);
+      cList = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 300);
+      cList.position.set(0, 23 + 100 * Math.sin(LIST_PITCH), 100 * Math.cos(LIST_PITCH));
+      cList.lookAt(0, 23, 0);
 
-      sList.add(new THREE.AmbientLight(0xffffff, 0.9));
-      const dl = new THREE.DirectionalLight(0xffffff, 0.55);
+      sList.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.6);
       dl.position.set(1, 2, 3);
       sList.add(dl);
       return true;
@@ -2032,10 +1987,10 @@
 
       s3 = new THREE.Scene();
       c3 = new THREE.PerspectiveCamera(35, 1, 1, 1000);
-      c3.position.set(0, MODEL_CENTER_Y + 64 * Math.sin(MODAL_PITCH), 64 * Math.cos(MODAL_PITCH));
+      c3.position.set(0, MODEL_CENTER_Y + 62 * Math.sin(MODAL_PITCH), 62 * Math.cos(MODAL_PITCH));
       c3.lookAt(0, MODEL_CENTER_Y, 0);
-      s3.add(new THREE.AmbientLight(0xffffff, 0.9));
-      const dl = new THREE.DirectionalLight(0xffffff, 0.55);
+      s3.add(new THREE.AmbientLight(0xffffff, 0.85));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.6);
       dl.position.set(1, 2, 3);
       s3.add(dl);
 
@@ -2096,6 +2051,75 @@
       });
     }
 
+    function rectsFor(u, v, w, h, d) {
+      const R = {
+        right:  { x: u,             y: v + d, w: d, h: h },
+        left:   { x: u + d + w,     y: v + d, w: d, h: h },
+        top:    { x: u + d,         y: v,     w: w, h: d },
+        bottom: { x: u + d + w,     y: v,     w: w, h: d },
+        front:  { x: u + d,         y: v + d, w: w, h: h },
+        back:   { x: u + 2 * d + w, y: v + d, w: w, h: h }
+      };
+      return [R.left, R.right, R.top, R.bottom, R.front, R.back];
+    }
+
+    function remapUV(geom, rects) {
+      const uv = geom.attributes.uv;
+      for (let f = 0; f < 6; f++) {
+        const r = rects[f];
+        for (let k = 0; k < 4; k++) {
+          const i = f * 4 + k;
+          const a = uv.getX(i), b = uv.getY(i);
+          uv.setXY(i, (r.x + a * r.w) / 64, 1 - (r.y + (1 - b) * r.h) / 64);
+        }
+      }
+      uv.needsUpdate = true;
+    }
+
+    function makePart(w, h, d, u, v, inflate, x, y, mat) {
+      const g = new THREE.BoxGeometry(w + inflate * 2, h + inflate * 2, d + inflate * 2);
+      remapUV(g, rectsFor(u, v, w, h, d));
+      const m = new THREE.Mesh(g, mat);
+      m.position.set(x, y, 0);
+      return m;
+    }
+
+    function limb(pivotX, pivotY, w, base, over, mat, omat) {
+      const p = new THREE.Group();
+      p.position.set(pivotX, pivotY, 0);
+      p.add(
+        makePart(w, 12, 4, base[0], base[1], 0, 0, -6, mat),
+        makePart(w, 12, 4, over[0], over[1], 0.25, 0, -6, omat)
+      );
+      return p;
+    }
+
+    function makeCharacter(parent, tex, slim) {
+      const mat  = new THREE.MeshLambertMaterial({ map: tex });
+      const omat = new THREE.MeshLambertMaterial({ map: tex, alphaTest: 0.5, transparent: true });
+      const aw = slim ? 3 : 4;
+
+      const body = new THREE.Group();
+      body.position.set(0, 12, 0);
+      parent.add(body);
+
+      body.add(
+        makePart(8, 8, 8, 0, 0, 0, 0, 16, mat),
+        makePart(8, 8, 8, 32, 0, 0.25, 0, 16, omat),
+        makePart(8, 12, 4, 16, 16, 0, 0, 6, mat),
+        makePart(8, 12, 4, 16, 32, 0.25, 0, 6, omat)
+      );
+
+      const rArm = limb(-(4 + aw / 2), 12, aw, [40, 16], [40, 32], mat, omat);
+      const lArm = limb( (4 + aw / 2), 12, aw, [32, 48], [48, 48], mat, omat);
+      const rLeg = limb(-2, 12, 4, [0, 16], [0, 32], mat, omat);
+      const lLeg = limb( 2, 12, 4, [16, 48], [0, 48], mat, omat);
+      body.add(rArm, lArm);
+      parent.add(rLeg, lLeg);
+
+      return { body, rArm, lArm, rLeg, lLeg };
+    }
+
     function buildModel3D(tex, slim) {
       while (root3.children.length) root3.remove(root3.children[0]);
 
@@ -2126,6 +2150,11 @@
         wrap.classList.add("hidden");
         actions.classList.add("hidden");
       }
+    }
+
+    // ベース層を自動補完したときに出す案内（1%未満なら出さない）
+    function baseFixNote(res) {
+      return res && res.baseFixPct >= 1 ? t('skin_base_filled', res.baseFixPct) : "";
     }
 
     async function copyErrorSkinData(mode) {
@@ -2218,11 +2247,11 @@
       try {
         const res = await loadPlayerSkin(player, r => {
           if (reqId !== skinReqId) return;
-          setModalNote("", false);
           applyModalSkin(r, reqId, false);
+          setModalNote(baseFixNote(r), false);
         });
-        setModalNote("", false);
         applyModalSkin(res, reqId, true);
+        setModalNote(baseFixNote(res), false);
       } catch (e) {
         if (reqId !== skinReqId) return;
         console.warn("スキン取得失敗。スティーブを表示して再挑戦します:", e);
